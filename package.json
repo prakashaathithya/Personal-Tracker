@@ -5,13 +5,13 @@
   "description": "Personal finance tracker — Angular frontend + NestJS API, deployed on Vercel.",
   "workspaces": [
     "web",
-    "api"
+    "server"
   ],
   "scripts": {
     "dev:web": "npm --workspace web run start",
-    "dev:api": "npm --workspace api run start:dev",
+    "dev:api": "npm --workspace server run start:dev",
     "build:web": "npm --workspace web run build",
-    "build:api": "npm --workspace api run build",
+    "build:api": "npm --workspace server run build",
     "vercel-build": "npm --workspace web run build"
   },
   "engines": {

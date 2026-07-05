@@ -1,6 +1,12 @@
 # dependencies
 node_modules/
 
+# npm lockfile intentionally not committed: a Windows-generated lockfile breaks
+# Vercel's Linux install (missing platform binaries, npm/cli#4828). Fresh installs
+# resolve the correct per-platform binaries on every machine.
+package-lock.json
+**/package-lock.json
+
 # build output
 dist/
 web/dist/
@@ -22,3 +28,5 @@ Thumbs.db
 
 # source workbook (kept locally, not deployed)
 *.xlsx
+.vercel
+.env*

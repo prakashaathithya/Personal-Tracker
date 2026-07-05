@@ -1,16 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express, { Request, Response } from 'express';
-import { AppModule } from './src/app.module';
-import { configureApp } from './src/setup';
+import { AppModule } from '../server/src/app.module';
+import { configureApp } from '../server/src/setup';
 
 /**
- * Vercel serverless entry point.
+ * Vercel serverless entry point — the ONLY file in /api, so Vercel creates a
+ * single function for it. The NestJS app lives in /server and is imported here.
  *
- * Vercel turns this file into a single serverless function. We bootstrap the
- * full Nest application once per cold start onto an Express instance and reuse
- * it across invocations (warm starts). The `/api/(.*)` rewrite in vercel.json
- * routes every API request here.
+ * The full Nest application is bootstrapped once per cold start onto an Express
+ * instance and reused across warm invocations. The `/api/(.*)` rewrite in
+ * vercel.json routes every API request to this function.
  */
 const server = express();
 let ready: Promise<void> | null = null;
