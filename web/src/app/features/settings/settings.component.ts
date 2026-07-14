@@ -1,81 +1,103 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatListModule } from '@angular/material/list';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
 import { Category, NeedClass, PaymentType } from '../../core/models';
 
+const PAYMENT_ICONS: Record<string, string> = {
+  'auto debit': 'autorenew',
+  cash: 'payments',
+  'credit card': 'credit_card',
+  'debit card': 'local_atm',
+  emi: 'info',
+  upi: 'dialpad',
+};
+
 @Component({
   selector: 'app-settings',
-  imports: [
-    FormsModule,
-    MatCardModule,
-    MatListModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-  ],
+  imports: [FormsModule, MatCardModule, MatButtonModule, MatIconModule],
   template: `
     <div class="page">
-      <div class="page-header"><h1>Settings</h1></div>
+      <div class="page-header">
+        <div>
+          <h1>Settings</h1>
+          <p class="page-subtitle">Manage the categories and payment types used across your transactions.</p>
+        </div>
+      </div>
 
       <div class="grid">
         <mat-card>
-          <mat-card-header><mat-card-title>Categories</mat-card-title></mat-card-header>
           <mat-card-content>
-            <div class="add-row">
-              <mat-form-field appearance="outline">
-                <mat-label>New category</mat-label>
-                <input matInput [(ngModel)]="newCat" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Class</mat-label>
-                <mat-select [(ngModel)]="newCatClass">
-                  @for (nc of needClasses; track nc) {
-                    <mat-option [value]="nc">{{ nc }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <button matButton="filled" (click)="addCategory()" [disabled]="!newCat"><mat-icon>add</mat-icon></button>
+            <div class="card-title-row">
+              <h2>Categories</h2>
+              <span class="count-badge">{{ categories().length }}</span>
             </div>
-            <mat-list>
-              @for (c of categories(); track c.id) {
-                <mat-list-item>
-                  <span matListItemTitle>{{ c.name }}</span>
-                  <span matListItemLine>{{ c.need_class }}</span>
-                  <button matIconButton matListItemMeta (click)="deleteCategory(c)"><mat-icon>delete</mat-icon></button>
-                </mat-list-item>
+
+            <div class="add-row">
+              <input class="field grow" placeholder="New category name" [(ngModel)]="newCat" />
+              <div class="select-wrap">
+                <select class="field select-field" [(ngModel)]="newCatClass">
+                  @for (nc of needClasses; track nc) {
+                    <option [value]="nc">{{ nc }}</option>
+                  }
+                </select>
+                <mat-icon class="select-chevron">expand_more</mat-icon>
+              </div>
+              <button matButton="filled" class="add-btn" (click)="addCategory()">
+                <mat-icon>add</mat-icon> Add
+              </button>
+            </div>
+
+            <div class="search-wrap">
+              <mat-icon class="search-icon">search</mat-icon>
+              <input class="field search-field" placeholder="Search categories" [(ngModel)]="categorySearch" />
+            </div>
+
+            <div class="scroll-list">
+              @for (c of filteredCategories(); track c.id) {
+                <div class="row-item">
+                  <span class="row-name">{{ c.name }}</span>
+                  <span class="pill" [class]="pillClass(c.need_class)">{{ c.need_class }}</span>
+                  <button matIconButton class="delete-btn" (click)="deleteCategory(c)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
               }
-            </mat-list>
+              @if (!filteredCategories().length) {
+                <p class="empty">No categories found.</p>
+              }
+            </div>
           </mat-card-content>
         </mat-card>
 
         <mat-card>
-          <mat-card-header><mat-card-title>Payment types</mat-card-title></mat-card-header>
           <mat-card-content>
-            <div class="add-row">
-              <mat-form-field appearance="outline">
-                <mat-label>New payment type</mat-label>
-                <input matInput [(ngModel)]="newPay" />
-              </mat-form-field>
-              <button matButton="filled" (click)="addPayment()" [disabled]="!newPay"><mat-icon>add</mat-icon></button>
+            <div class="card-title-row">
+              <h2>Payment types</h2>
+              <span class="count-badge">{{ paymentTypes().length }}</span>
             </div>
-            <mat-list>
+
+            <div class="add-row">
+              <input class="field grow" placeholder="New payment type" [(ngModel)]="newPay" />
+              <button matButton="filled" class="add-btn" (click)="addPayment()">
+                <mat-icon>add</mat-icon> Add
+              </button>
+            </div>
+
+            <div class="scroll-list">
               @for (p of paymentTypes(); track p.id) {
-                <mat-list-item>
-                  <span matListItemTitle>{{ p.name }}</span>
-                  <button matIconButton matListItemMeta (click)="deletePayment(p)"><mat-icon>delete</mat-icon></button>
-                </mat-list-item>
+                <div class="row-item">
+                  <span class="icon-badge"><mat-icon>{{ paymentIcon(p.name) }}</mat-icon></span>
+                  <span class="row-name">{{ p.name }}</span>
+                  <button matIconButton class="delete-btn" (click)="deletePayment(p)">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
               }
-            </mat-list>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -83,8 +105,176 @@ import { Category, NeedClass, PaymentType } from '../../core/models';
   `,
   styles: [
     `
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
-      .add-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .page-subtitle {
+        margin: 4px 0 0;
+        font-size: 0.9rem;
+        color: var(--mat-sys-on-surface-variant);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+        gap: 16px;
+      }
+      .card-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+
+        h2 {
+          margin: 0;
+          font-family: 'Sora', Roboto, sans-serif;
+          font-size: 1.15rem;
+          font-weight: 700;
+        }
+      }
+      .count-badge {
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: light-dark(#0f9d76, #34d399);
+        background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+      }
+
+      /* ---- Flat field styling: shared by text input, select, search ---- */
+      .field {
+        box-sizing: border-box;
+        height: 48px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid light-dark(#e2e8e5, #2a3730);
+        background: light-dark(#f7f9f8, #1b2420);
+        color: var(--mat-sys-on-surface);
+        font-family: Roboto, sans-serif;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.15s ease;
+
+        &::placeholder { color: var(--mat-sys-on-surface-variant); }
+        &:focus { border-color: color-mix(in srgb, var(--mat-sys-primary) 55%, transparent); }
+      }
+
+      .add-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .grow { flex: 1 1 auto; min-width: 0; }
+      .select-wrap {
+        position: relative;
+        flex: 0 0 130px;
+      }
+      .select-field {
+        width: 100%;
+        appearance: none;
+        padding-right: 30px;
+        cursor: pointer;
+      }
+      .select-chevron {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--mat-sys-on-surface-variant);
+        pointer-events: none;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      .add-btn {
+        flex: 0 0 auto;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+      .search-wrap {
+        position: relative;
+        margin-bottom: 4px;
+      }
+      .search-field {
+        width: 100%;
+        padding-left: 40px;
+      }
+      .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .scroll-list {
+        max-height: 380px;
+        overflow-y: auto;
+        margin-top: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: light-dark(#d6dcd9, #2e3b34) transparent;
+
+        &::-webkit-scrollbar { width: 6px; }
+        &::-webkit-scrollbar-track { background: transparent; }
+        &::-webkit-scrollbar-thumb {
+          background: light-dark(#d6dcd9, #2e3b34);
+          border-radius: 999px;
+        }
+      }
+      .row-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 4px;
+        border-bottom: 1px solid light-dark(#eef2f0, #24312b);
+
+        &:last-child { border-bottom: none; }
+      }
+      .row-name {
+        font-weight: 500;
+        flex: 1 1 auto;
+      }
+      .delete-btn {
+        color: var(--mat-sys-on-surface-variant);
+        opacity: 0.6;
+
+        &:hover { opacity: 1; color: light-dark(#dc2626, #f87171); }
+      }
+      .icon-badge {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: light-dark(#f1f3f5, #24312b);
+        color: var(--mat-sys-on-surface-variant);
+
+        mat-icon { font-size: 19px; width: 19px; height: 19px; }
+      }
+      .empty {
+        color: var(--mat-sys-on-surface-variant);
+        font-size: 0.9rem;
+        padding: 12px 4px;
+      }
+      .pill {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .pill-needs { color: light-dark(#1d4ed8, #93c5fd); background: light-dark(#dbeafe, rgba(59,130,246,0.18)); }
+      .pill-wants { color: light-dark(#92400e, #fcd34d); background: light-dark(#fef3c7, rgba(217,119,6,0.18)); }
+      .pill-saving { color: light-dark(#047857, #6ee7b7); background: light-dark(#d1fae5, rgba(16,185,129,0.18)); }
+      .pill-others { color: light-dark(#6b7280, #cbd5e1); background: light-dark(#e5e7eb, rgba(148,163,184,0.18)); }
     `,
   ],
 })
@@ -95,6 +285,13 @@ export class SettingsComponent {
   readonly needClasses: NeedClass[] = ['Needs', 'Wants', 'Saving', 'Others'];
   readonly categories = signal<Category[]>([]);
   readonly paymentTypes = signal<PaymentType[]>([]);
+
+  categorySearch = '';
+  readonly filteredCategories = computed(() => {
+    const q = this.categorySearch.trim().toLowerCase();
+    if (!q) return this.categories();
+    return this.categories().filter((c) => c.name.toLowerCase().includes(q));
+  });
 
   newCat = '';
   newCatClass: NeedClass = 'Others';
@@ -112,7 +309,16 @@ export class SettingsComponent {
     this.api.listPaymentTypes().subscribe((r) => this.paymentTypes.set(r));
   }
 
+  pillClass(nc: NeedClass): string {
+    return `pill-${nc.toLowerCase()}`;
+  }
+
+  paymentIcon(name: string): string {
+    return PAYMENT_ICONS[name.trim().toLowerCase()] ?? 'account_balance_wallet';
+  }
+
   addCategory() {
+    if (!this.newCat.trim()) return;
     this.api
       .createCategory({ name: this.newCat, need_class: this.newCatClass })
       .subscribe({
@@ -128,6 +334,7 @@ export class SettingsComponent {
   }
 
   addPayment() {
+    if (!this.newPay.trim()) return;
     this.api.createPaymentType({ name: this.newPay }).subscribe({
       next: () => {
         this.newPay = '';

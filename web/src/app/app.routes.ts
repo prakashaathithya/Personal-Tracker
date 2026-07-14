@@ -36,6 +36,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'accounts',
+        loadComponent: () =>
+          import('./features/accounts/accounts.component').then(
+            (m) => m.AccountsComponent,
+          ),
+      },
+      {
         path: 'budget',
         loadComponent: () =>
           import('./features/budgets/budgets.component').then(
@@ -47,6 +54,27 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/loans/loans.component').then(
             (m) => m.LoansComponent,
+          ),
+      },
+      {
+        path: 'goals',
+        loadComponent: () =>
+          import('./features/goals/goals.component').then(
+            (m) => m.GoalsComponent,
+          ),
+      },
+      {
+        path: 'recurring',
+        loadComponent: () =>
+          import('./features/recurring/recurring.component').then(
+            (m) => m.RecurringComponent,
+          ),
+      },
+      {
+        path: 'rules',
+        loadComponent: () =>
+          import('./features/rules/rules.component').then(
+            (m) => m.RulesComponent,
           ),
       },
       {

@@ -3,16 +3,24 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  Account,
   BudgetItem,
+  CategorizationRule,
   Category,
   CategoryTotal,
   ImportRow,
+  RecurringTransaction,
+  ImportPreview,
   Loan,
+  LoanScheduleRow,
   MonthlyBudget,
   MonthlyReportRow,
   NeedClassTotal,
+  NetWorth,
+  NetWorthPoint,
   Paged,
   PaymentType,
+  SavingsGoal,
   Summary,
   Transaction,
 } from './models';
@@ -41,6 +49,26 @@ export class ApiService {
       }
     }
     return p;
+  }
+
+  // Accounts
+  listAccounts(): Observable<Account[]> {
+    return this.http.get<Account[]>(`${this.base}/accounts`);
+  }
+  accountBalances(): Observable<NetWorth> {
+    return this.http.get<NetWorth>(`${this.base}/accounts/balances`);
+  }
+  netWorthTrend(): Observable<NetWorthPoint[]> {
+    return this.http.get<NetWorthPoint[]>(`${this.base}/accounts/net-worth-trend`);
+  }
+  createAccount(body: Partial<Account>): Observable<Account> {
+    return this.http.post<Account>(`${this.base}/accounts`, body);
+  }
+  updateAccount(id: string, body: Partial<Account>): Observable<Account> {
+    return this.http.patch<Account>(`${this.base}/accounts/${id}`, body);
+  }
+  deleteAccount(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/accounts/${id}`);
   }
 
   // Categories
@@ -118,8 +146,14 @@ export class ApiService {
   createLoan(body: Partial<Loan>): Observable<Loan> {
     return this.http.post<Loan>(`${this.base}/loans`, body);
   }
+  updateLoan(id: string, body: Partial<Loan>): Observable<Loan> {
+    return this.http.patch<Loan>(`${this.base}/loans/${id}`, body);
+  }
   deleteLoan(id: string): Observable<unknown> {
     return this.http.delete(`${this.base}/loans/${id}`);
+  }
+  setInstallmentPaid(scheduleId: string, paid: boolean): Observable<LoanScheduleRow> {
+    return this.http.patch<LoanScheduleRow>(`${this.base}/loans/schedule/${scheduleId}`, { paid });
   }
 
   // Reports
@@ -144,10 +178,65 @@ export class ApiService {
     });
   }
 
+  // Categorization rules
+  listRules(): Observable<CategorizationRule[]> {
+    return this.http.get<CategorizationRule[]>(`${this.base}/rules`);
+  }
+  createRule(body: Partial<CategorizationRule>): Observable<CategorizationRule> {
+    return this.http.post<CategorizationRule>(`${this.base}/rules`, body);
+  }
+  updateRule(id: string, body: Partial<CategorizationRule>): Observable<CategorizationRule> {
+    return this.http.patch<CategorizationRule>(`${this.base}/rules/${id}`, body);
+  }
+  deleteRule(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/rules/${id}`);
+  }
+  applyRules(): Observable<{ updated: number }> {
+    return this.http.post<{ updated: number }>(`${this.base}/rules/apply`, {});
+  }
+
+  // Recurring transactions
+  listRecurring(): Observable<RecurringTransaction[]> {
+    return this.http.get<RecurringTransaction[]>(`${this.base}/recurring`);
+  }
+  createRecurring(body: Partial<RecurringTransaction>): Observable<RecurringTransaction> {
+    return this.http.post<RecurringTransaction>(`${this.base}/recurring`, body);
+  }
+  updateRecurring(id: string, body: Partial<RecurringTransaction>): Observable<RecurringTransaction> {
+    return this.http.patch<RecurringTransaction>(`${this.base}/recurring/${id}`, body);
+  }
+  deleteRecurring(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/recurring/${id}`);
+  }
+  runRecurring(): Observable<{ generated: number }> {
+    return this.http.post<{ generated: number }>(`${this.base}/recurring/run`, {});
+  }
+
+  // Savings goals
+  listGoals(): Observable<SavingsGoal[]> {
+    return this.http.get<SavingsGoal[]>(`${this.base}/goals`);
+  }
+  createGoal(body: Partial<SavingsGoal>): Observable<SavingsGoal> {
+    return this.http.post<SavingsGoal>(`${this.base}/goals`, body);
+  }
+  updateGoal(id: string, body: Partial<SavingsGoal>): Observable<SavingsGoal> {
+    return this.http.patch<SavingsGoal>(`${this.base}/goals/${id}`, body);
+  }
+  deleteGoal(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/goals/${id}`);
+  }
+
   // Import
-  importTransactions(rows: ImportRow[]): Observable<{ inserted: number }> {
-    return this.http.post<{ inserted: number }>(`${this.base}/import/transactions`, {
-      rows,
-    });
+  previewImport(rows: ImportRow[]): Observable<ImportPreview> {
+    return this.http.post<ImportPreview>(`${this.base}/import/preview`, { rows });
+  }
+  importTransactions(
+    rows: ImportRow[],
+    skipDuplicates = true,
+  ): Observable<{ inserted: number; skipped: number }> {
+    return this.http.post<{ inserted: number; skipped: number }>(
+      `${this.base}/import/transactions`,
+      { rows, skipDuplicates },
+    );
   }
 }

@@ -1,15 +1,33 @@
 @use '@angular/material' as mat;
 
+/* ================================================================== *
+ *  MoneyMap theme
+ *  - Light-first, flat, high-legibility. Fresh mint-green accent.
+ *  - No glows / glass / gradients — built for dense tables & forms.
+ *  Dark mode is available via the toolbar toggle (light is default).
+ * ================================================================== */
 html {
-  color-scheme: light;
+  color-scheme: light dark;
   @include mat.theme((
     color: (
-      theme-type: light,
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$green-palette,
+      tertiary: mat.$cyan-palette,
     ),
-    typography: Roboto,
+    typography: (
+      plain-family: Roboto,
+      brand-family: 'Sora',
+    ),
     density: 0,
+  ));
+
+  /* Pin the accent to a fresh mint green in both light and dark. */
+  --mat-sys-primary: light-dark(#10b981, #34d399);
+  --mat-sys-on-primary: light-dark(#ffffff, #05140e);
+  --mat-sys-primary-container: light-dark(#d1fae5, #124a38);
+  --mat-sys-on-primary-container: light-dark(#064e3b, #b9f4dd);
+
+  @include mat.card-overrides((
+    elevated-container-shape: 14px,
   ));
 }
 
@@ -18,28 +36,52 @@ html, body {
   margin: 0;
 }
 
+/* Frosted canvas: cool blue-gray easing into white, with a mint glow
+   on the right — mirrors the reference screenshot. */
 body {
-  background: var(--mat-sys-surface-container-low, #f5f5f7);
-  color: var(--mat-sys-on-surface, #1a1a1a);
+  min-height: 100%;
+  background:
+    radial-gradient(900px 720px at 97% 42%,
+      light-dark(rgba(52, 211, 153, 0.22), rgba(52, 211, 153, 0.12)), transparent 62%),
+    linear-gradient(120deg,
+      light-dark(#e7ecf3, #12181c) 0%,
+      light-dark(#f4f7fa, #0f1417) 50%,
+      light-dark(#eaf4ee, #101a15) 100%);
+  background-attachment: fixed;
+  color: var(--mat-sys-on-surface);
   font-family: Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .spacer { flex: 1 1 auto; }
 
+/* ---- Layout helpers ---- */
 .page {
-  padding: 24px;
+  padding: 18px 24px 28px;
   max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
+/* Header height (48px) + page top padding (18px) = 66px, matching the
+   sidebar's brand divider (18px inner pad + 4+30+14 brand block) so both
+   separators line up as one continuous horizontal rule. */
 .page-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  height: 48px;
+  box-sizing: border-box;
+  margin-bottom: 24px;
+  border-bottom: 1px solid light-dark(#e2efe9, #24312b);
 
-  h1 { margin: 0; font-size: 1.6rem; font-weight: 500; }
+  h1 {
+    margin: 0;
+    font-family: 'Sora', Roboto, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
 }
 
 .cards-row {
@@ -47,11 +89,185 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
   margin-bottom: 24px;
+  perspective: 1200px;   /* 3D depth for the stat cards */
 }
 
-.full-width { width: 100%; }
+.charts { perspective: 1400px; }
 
+.full-width { width: 100%; }
 .text-right { text-align: right; }
 
-.amount-positive { color: #2e7d32; }
-.amount-negative { color: #c62828; }
+/* ---- Money colors ---- */
+.amount-positive { color: light-dark(#0f9d76, #34d399); font-weight: 600; }
+.amount-negative { color: light-dark(#dc2626, #f87171); font-weight: 600; }
+
+/* ================================================================== *
+ *  Component styling — flat, bordered, quiet
+ * ================================================================== */
+
+/* Cards: raised 3D surface — layered shadows + top highlight */
+.mat-mdc-card {
+  background: light-dark(#ffffff, #18201c) !important;
+  border: 1px solid light-dark(#e2efe9, #24312b);
+  border-radius: 14px !important;
+  box-shadow:
+    inset 0 1px 0 light-dark(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.05)),
+    0 1px 1px light-dark(rgba(16, 40, 30, 0.04), rgba(0, 0, 0, 0.25)),
+    0 4px 8px light-dark(rgba(16, 40, 30, 0.05), rgba(0, 0, 0, 0.30)),
+    0 12px 24px light-dark(rgba(16, 40, 30, 0.06), rgba(0, 0, 0, 0.35)) !important;
+  transform: translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 200ms ease, border-color 200ms ease;
+}
+
+/* Stat cards: lift, tilt toward the viewer, and deepen the shadow */
+.cards-row .mat-mdc-card:hover,
+.charts .mat-mdc-card:hover {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+  transform: translateY(-6px) rotateX(5deg) scale(1.015);
+  box-shadow:
+    inset 0 1px 0 light-dark(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.06)),
+    0 2px 4px light-dark(rgba(16, 40, 30, 0.08), rgba(0, 0, 0, 0.35)),
+    0 16px 28px light-dark(rgba(16, 40, 30, 0.12), rgba(0, 0, 0, 0.45)),
+    0 30px 60px light-dark(rgba(16, 40, 30, 0.14), rgba(0, 0, 0, 0.55)) !important;
+}
+
+/* Toolbar: solid surface, single hairline rule */
+.mat-toolbar {
+  background: light-dark(#ffffff, #141b17) !important;
+  color: var(--mat-sys-on-surface) !important;
+  border-bottom: 1px solid light-dark(#e2efe9, #24312b);
+}
+
+/* Sidenav: solid, thin divider, never scrolls internally */
+.mat-sidenav {
+  background: light-dark(#ffffff, #141b17) !important;
+  border-right: 1px solid light-dark(#e2efe9, #24312b) !important;
+
+  .mat-drawer-inner-container {
+    overflow: hidden !important;
+  }
+}
+
+/* Nav items: quiet hover, clear active pill with accent stripe.
+   Label/icon color must go through the Material CSS custom properties —
+   the label text lives in a child span with its own `color: var(...)`,
+   so setting `color` on the parent anchor alone never reaches it. */
+.mat-mdc-nav-list .mat-mdc-list-item {
+  position: relative;
+  height: 46px;
+  margin-bottom: 2px;
+  border-radius: 10px;
+  transition: background-color 150ms ease;
+}
+.mat-mdc-nav-list .mat-mdc-list-item:not(.mdc-list-item--activated):hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+}
+.mat-mdc-list-item.mdc-list-item--activated {
+  background: color-mix(in srgb, var(--mat-sys-primary) 20%, transparent) !important;
+  --mat-list-list-item-label-text-color: light-dark(#0a7a5c, #34d399);
+  --mat-list-list-item-leading-icon-color: light-dark(#0a7a5c, #34d399);
+
+  .mdc-list-item__primary-text { font-weight: 600; }
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: light-dark(#0a7a5c, #34d399);
+    pointer-events: none;
+  }
+}
+
+/* Buttons: modest radius */
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button { border-radius: 10px; }
+
+/* Filled primary buttons get a 3D "solid edge" that presses down on click */
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  box-shadow:
+    0 4px 0 color-mix(in srgb, var(--mat-sys-primary) 65%, #000),
+    0 6px 14px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent) !important;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+.mat-mdc-unelevated-button.mat-primary:active,
+.mat-mdc-raised-button.mat-primary:active {
+  transform: translateY(3px);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--mat-sys-primary) 65%, #000),
+    0 2px 6px color-mix(in srgb, var(--mat-sys-primary) 35%, transparent) !important;
+}
+
+/* Tables: quiet header, faint row hover */
+.mat-mdc-header-cell {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface-variant);
+}
+.mat-mdc-row:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+}
+
+.mat-mdc-form-field { width: 100%; }
+
+/* Keep header controls (e.g. the dashboard range toggle) shorter than the
+   48px page-header so they don't collide with the divider rule */
+.page-header .mat-button-toggle-group {
+  height: 38px;
+  border-radius: 9px;
+}
+.page-header .mat-button-toggle .mat-button-toggle-button,
+.page-header .mat-button-toggle .mat-button-toggle-label-content {
+  height: 38px;
+  line-height: 36px;
+}
+
+/* Brand badge (MV) + premium pill live in the toolbar (shell component) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.brand-badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 3px 0 #0b7f66,
+    0 6px 12px rgba(16, 185, 129, 0.45);
+  transform: translateZ(0);
+}
+.brand-name {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+}
+.premium-pill {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 4px 11px;
+  border-radius: 999px;
+  color: light-dark(#0f9d76, #34d399);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+}

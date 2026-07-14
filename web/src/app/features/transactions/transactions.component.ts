@@ -6,14 +6,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../core/api.service';
-import { Category, PaymentType, Transaction } from '../../core/models';
+import { StorageService } from '../../core/storage.service';
+import { Account, Category, PaymentType, Transaction } from '../../core/models';
 import {
   TransactionDialogComponent,
   TxnDialogData,
@@ -29,9 +28,7 @@ import {
     MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatChipsModule,
+    MatCardModule,
     MatDialogModule,
     MatProgressBarModule,
   ],
@@ -39,85 +36,253 @@ import {
     <div class="page">
       <div class="page-header">
         <h1>Transactions</h1>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <mat-icon (click)="applyFilter()">search</mat-icon>
+          <input
+            type="text"
+            placeholder="Search description"
+            [(ngModel)]="search"
+            (keyup.enter)="applyFilter()"
+          />
+        </div>
+
+        <div class="filter-group">
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="planned === undefined"
+            (click)="onPlannedFilter('all')"
+          >
+            All
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="planned === true"
+            (click)="onPlannedFilter('planned')"
+          >
+            Planned
+          </button>
+          <button
+            type="button"
+            class="filter-pill"
+            [class.active]="planned === false"
+            (click)="onPlannedFilter('unplanned')"
+          >
+            Unplanned
+          </button>
+        </div>
+
         <span class="spacer"></span>
-        <button matButton="filled" (click)="openDialog()">
+
+        <button class="btn-add" matButton="filled" (click)="openDialog()">
           <mat-icon>add</mat-icon> Add
         </button>
       </div>
 
-      <div class="filters">
-        <mat-form-field appearance="outline" class="search">
-          <mat-label>Search description</mat-label>
-          <input matInput [(ngModel)]="search" (keyup.enter)="applyFilter()" />
-          <mat-icon matSuffix (click)="applyFilter()">search</mat-icon>
-        </mat-form-field>
-        <mat-chip-listbox (change)="onPlannedFilter($event.value)">
-          <mat-chip-option value="all" selected>All</mat-chip-option>
-          <mat-chip-option value="planned">Planned</mat-chip-option>
-          <mat-chip-option value="unplanned">Unplanned</mat-chip-option>
-        </mat-chip-listbox>
-      </div>
+      <mat-card class="txn-card">
+        @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
-      @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+        <table mat-table [dataSource]="rows()" class="full-width">
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let t">{{ t.txn_date | date: 'dd MMM yyyy' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let t" class="description-cell">{{ t.description }}</td>
+          </ng-container>
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <td mat-cell *matCellDef="let t">{{ t.category?.name ?? '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="account">
+            <th mat-header-cell *matHeaderCellDef>Account</th>
+            <td mat-cell *matCellDef="let t">
+              @if (t.direction === 'transfer') {
+                {{ t.account?.name ?? '—' }} → {{ t.transfer_account?.name ?? '—' }}
+              } @else {
+                {{ t.account?.name ?? '—' }}
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let t">
+              <span class="badge badge-{{ t.direction }}">{{ t.direction }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Amount</th>
+            <td
+              mat-cell
+              *matCellDef="let t"
+              class="text-right amount-cell"
+              [class.amount-income]="t.direction === 'income'"
+            >
+              {{ t.direction === 'income' ? '+' : t.direction === 'expense' ? '−' : '' }}{{ t.amount | currency: 'INR' : 'symbol' : '1.0-0' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let t" class="text-right actions-cell">
+              <button matIconButton (click)="openDialog(t)"><mat-icon>edit</mat-icon></button>
+              <button matIconButton (click)="remove(t)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </ng-container>
 
-      <table mat-table [dataSource]="rows()" class="full-width">
-        <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef>Date</th>
-          <td mat-cell *matCellDef="let t">{{ t.txn_date | date: 'dd MMM yyyy' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
-          <td mat-cell *matCellDef="let t">{{ t.description }}</td>
-        </ng-container>
-        <ng-container matColumnDef="category">
-          <th mat-header-cell *matHeaderCellDef>Category</th>
-          <td mat-cell *matCellDef="let t">{{ t.category?.name ?? '—' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="payment">
-          <th mat-header-cell *matHeaderCellDef>Payment</th>
-          <td mat-cell *matCellDef="let t">{{ t.payment_type?.name ?? '—' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="planned">
-          <th mat-header-cell *matHeaderCellDef>Type</th>
-          <td mat-cell *matCellDef="let t">{{ t.planned ? 'Planned' : 'Unplanned' }}</td>
-        </ng-container>
-        <ng-container matColumnDef="amount">
-          <th mat-header-cell *matHeaderCellDef class="text-right">Amount</th>
-          <td mat-cell *matCellDef="let t" class="text-right">
-            {{ t.amount | currency: 'INR' : 'symbol' : '1.0-0' }}
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let t" class="text-right">
-            <button matIconButton (click)="openDialog(t)"><mat-icon>edit</mat-icon></button>
-            <button matIconButton (click)="remove(t)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
 
-        <tr mat-header-row *matHeaderRowDef="columns"></tr>
-        <tr mat-row *matRowDef="let row; columns: columns"></tr>
-      </table>
+        @if (!loading() && rows().length === 0) {
+          <p class="empty">No transactions yet. Click “Add” or import from Excel.</p>
+        }
 
-      @if (!loading() && rows().length === 0) {
-        <p class="empty">No transactions yet. Click “Add” or import from Excel.</p>
-      }
-
-      <mat-paginator
-        [length]="total()"
-        [pageSize]="pageSize"
-        [pageIndex]="pageIndex()"
-        [pageSizeOptions]="[25, 50, 100]"
-        (page)="onPage($event)"
-      />
+        <mat-paginator
+          [length]="total()"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex()"
+          [pageSizeOptions]="[25, 50, 100]"
+          (page)="onPage($event)"
+        />
+      </mat-card>
     </div>
   `,
   styles: [
     `
-      .filters { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
-      .search { width: 280px; }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1 1 280px;
+        max-width: 420px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: light-dark(#ffffff, #18201c);
+        border: 1px solid light-dark(#e2e8f0, #2a3b33);
+
+        mat-icon {
+          color: light-dark(#94a3b8, #6b8478);
+          cursor: pointer;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+
+        input {
+          border: none;
+          outline: none;
+          background: transparent;
+          flex: 1;
+          font-size: 0.95rem;
+          color: var(--mat-sys-on-surface);
+          font-family: inherit;
+
+          &::placeholder { color: light-dark(#94a3b8, #6b8478); }
+        }
+      }
+
+      .filter-group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .filter-pill {
+        padding: 9px 20px;
+        border-radius: 999px;
+        border: 1px solid light-dark(#e2e8f0, #2a3b33);
+        background: light-dark(#ffffff, #18201c);
+        color: var(--mat-sys-on-surface);
+        font-family: inherit;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+
+        &:hover { border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, transparent); }
+
+        &.active {
+          background: var(--mat-sys-primary-container);
+          border-color: color-mix(in srgb, var(--mat-sys-primary) 45%, transparent);
+          color: var(--mat-sys-on-primary-container);
+        }
+      }
+
+      .btn-add.mat-mdc-unelevated-button {
+        border-radius: 999px !important;
+        padding-inline: 22px !important;
+        font-weight: 700;
+      }
+
+      .txn-card.mat-mdc-card {
+        padding: 0 !important;
+        overflow: hidden;
+      }
+
+      table { background: transparent; }
+
+      .mat-mdc-header-row {
+        background: light-dark(#f3f5f7, #1b2420);
+      }
+      .mat-mdc-header-cell {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: light-dark(#94a3b8, #7a9188);
+        padding: 14px 16px;
+      }
+      .mat-mdc-cell {
+        padding: 14px 16px;
+        font-size: 0.92rem;
+      }
+      .description-cell { font-weight: 600; }
+      .amount-cell { font-weight: 700; }
+      .actions-cell {
+        button.mat-mdc-icon-button {
+          width: 36px;
+          height: 36px;
+          padding: 6px;
+          color: light-dark(#94a3b8, #6b8478);
+
+          mat-icon { font-size: 18px; width: 18px; height: 18px; }
+        }
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 14px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+      .badge-expense {
+        background: light-dark(#fef3c7, #3a2f12);
+        color: light-dark(#92400e, #fcd34d);
+      }
+      .badge-income {
+        background: var(--mat-sys-primary-container);
+        color: var(--mat-sys-on-primary-container);
+      }
+      .badge-transfer {
+        background: light-dark(#e0f2fe, #0c2a3a);
+        color: light-dark(#075985, #7dd3fc);
+      }
+      .amount-income { color: light-dark(#0f9d76, #34d399); }
+
       .empty { text-align: center; opacity: 0.6; padding: 32px; }
-      table { background: var(--mat-sys-surface, #fff); }
     `,
   ],
 })
@@ -126,7 +291,7 @@ export class TransactionsComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snack = inject(MatSnackBar);
 
-  readonly columns = ['date', 'description', 'category', 'payment', 'planned', 'amount', 'actions'];
+  readonly columns = ['date', 'description', 'category', 'account', 'type', 'amount', 'actions'];
   readonly rows = signal<Transaction[]>([]);
   readonly total = signal(0);
   readonly loading = signal(false);
@@ -135,17 +300,20 @@ export class TransactionsComponent {
 
   private categories: Category[] = [];
   private paymentTypes: PaymentType[] = [];
+  private accounts: Account[] = [];
 
   search = '';
-  private planned: boolean | undefined;
+  planned: boolean | undefined;
 
   constructor() {
     forkJoin({
       categories: this.api.listCategories(),
       paymentTypes: this.api.listPaymentTypes(),
+      accounts: this.api.listAccounts(),
     }).subscribe((r) => {
       this.categories = r.categories;
       this.paymentTypes = r.paymentTypes;
+      this.accounts = r.accounts;
     });
     this.load();
   }
@@ -188,6 +356,7 @@ export class TransactionsComponent {
     const data: TxnDialogData = {
       categories: this.categories,
       paymentTypes: this.paymentTypes,
+      accounts: this.accounts,
       transaction,
     };
     this.dialog

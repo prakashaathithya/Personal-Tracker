@@ -37,7 +37,17 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
 
   private render(config: ChartConfiguration) {
     this.chart?.destroy();
-    this.chart = new Chart(this.canvas().nativeElement, config);
+    const host = this.canvas().nativeElement;
+
+    // Pull live theme colors so charts stay readable in light & dark.
+    const cs = getComputedStyle(host);
+    const text = cs.getPropertyValue('--mat-sys-on-surface').trim();
+    const grid = cs.getPropertyValue('--mat-sys-outline-variant').trim();
+    if (text) Chart.defaults.color = text;
+    if (grid) Chart.defaults.borderColor = grid;
+    Chart.defaults.font.family = "'Sora', Roboto, sans-serif";
+
+    this.chart = new Chart(host, config);
   }
 
   ngOnDestroy() {

@@ -1,4 +1,4 @@
-# Finance Tracker
+# MoneyMap
 
 Personal finance tracker — track expenses, monthly budgets, and loan/EMI schedules.
 

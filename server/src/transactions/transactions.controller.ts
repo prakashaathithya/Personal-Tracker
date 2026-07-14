@@ -12,6 +12,7 @@ import {
 import {
   IsBoolean,
   IsDateString,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -25,15 +26,21 @@ import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser, Db } from '../auth/decorators';
 import { handle } from '../common/handle';
 
+export const DIRECTIONS = ['income', 'expense', 'transfer'] as const;
+export type Direction = (typeof DIRECTIONS)[number];
+
 const EMBED =
-  '*, category:categories(id,name,need_class), payment_type:payment_types(id,name)';
+  '*, category:categories(id,name,need_class), payment_type:payment_types(id,name), account:accounts!transactions_account_id_fkey(id,name,type), transfer_account:accounts!transactions_transfer_account_id_fkey(id,name,type)';
 
 export class CreateTransactionDto {
   @IsDateString() txn_date!: string;
   @IsString() @MaxLength(200) description!: string;
   @IsNumber() @Min(0) amount!: number;
+  @IsOptional() @IsIn(DIRECTIONS) direction?: Direction;
   @IsOptional() @IsUUID() category_id?: string;
   @IsOptional() @IsUUID() payment_type_id?: string;
+  @IsOptional() @IsUUID() account_id?: string;
+  @IsOptional() @IsUUID() transfer_account_id?: string;
   @IsOptional() @IsBoolean() planned?: boolean;
 }
 
@@ -41,16 +48,22 @@ export class UpdateTransactionDto {
   @IsOptional() @IsDateString() txn_date?: string;
   @IsOptional() @IsString() @MaxLength(200) description?: string;
   @IsOptional() @IsNumber() @Min(0) amount?: number;
+  @IsOptional() @IsIn(DIRECTIONS) direction?: Direction;
   @IsOptional() @IsUUID() category_id?: string;
   @IsOptional() @IsUUID() payment_type_id?: string;
+  @IsOptional() @IsUUID() account_id?: string;
+  @IsOptional() @IsUUID() transfer_account_id?: string;
   @IsOptional() @IsBoolean() planned?: boolean;
+  @IsOptional() @IsString() @MaxLength(400) receipt_path?: string;
 }
 
 export class ListTransactionsQuery {
   @IsOptional() @IsDateString() from?: string;
   @IsOptional() @IsDateString() to?: string;
+  @IsOptional() @IsIn(DIRECTIONS) direction?: Direction;
   @IsOptional() @IsUUID() category_id?: string;
   @IsOptional() @IsUUID() payment_type_id?: string;
+  @IsOptional() @IsUUID() account_id?: string;
   @IsOptional() @Type(() => Boolean) @IsBoolean() planned?: boolean;
   @IsOptional() @IsString() search?: string;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(1) limit?: number;
@@ -74,9 +87,11 @@ export class TransactionsController {
 
     if (q.from) query = query.gte('txn_date', q.from);
     if (q.to) query = query.lte('txn_date', q.to);
+    if (q.direction) query = query.eq('direction', q.direction);
     if (q.category_id) query = query.eq('category_id', q.category_id);
     if (q.payment_type_id)
       query = query.eq('payment_type_id', q.payment_type_id);
+    if (q.account_id) query = query.eq('account_id', q.account_id);
     if (q.planned !== undefined) query = query.eq('planned', q.planned);
     if (q.search) query = query.ilike('description', `%${q.search}%`);
 

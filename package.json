@@ -1,5 +1,5 @@
 {
-  "name": "finance-tracker",
+  "name": "moneymap",
   "version": "1.0.0",
   "private": true,
   "description": "Personal finance tracker — Angular frontend + NestJS API, deployed on Vercel.",
@@ -11,8 +11,7 @@
     "dev:web": "npm --workspace web run start",
     "dev:api": "npm --workspace server run start:dev",
     "build:web": "npm --workspace web run build",
-    "build:api": "npm --workspace server run build",
-    "vercel-build": "npm --workspace web run build"
+    "build:api": "npm --workspace server run build"
   },
   "engines": {
     "node": ">=20"

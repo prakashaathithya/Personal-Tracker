@@ -1,5 +1,14 @@
 export type NeedClass = 'Needs' | 'Wants' | 'Saving' | 'Others';
 
+export type Direction = 'income' | 'expense' | 'transfer';
+
+export type AccountType =
+  | 'cash'
+  | 'bank'
+  | 'credit_card'
+  | 'wallet'
+  | 'investment';
+
 export interface Category {
   id: string;
   name: string;
@@ -13,16 +22,54 @@ export interface PaymentType {
   is_active: boolean;
 }
 
+export interface Account {
+  id: string;
+  name: string;
+  type: AccountType;
+  opening_balance: number;
+  is_active: boolean;
+}
+
+export interface AccountBalance extends Account {
+  balance: number;
+}
+
+export interface NetWorth {
+  accounts: AccountBalance[];
+  net_worth: number;
+}
+
 export interface Transaction {
   id: string;
   txn_date: string;
   description: string;
   amount: number;
+  direction: Direction;
   planned: boolean;
   category_id: string | null;
   payment_type_id: string | null;
+  account_id: string | null;
+  transfer_account_id: string | null;
   category?: { id: string; name: string; need_class: NeedClass } | null;
   payment_type?: { id: string; name: string } | null;
+  account?: { id: string; name: string; type: AccountType } | null;
+  transfer_account?: { id: string; name: string; type: AccountType } | null;
+  receipt_path?: string | null;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  account_id: string | null;
+  target_date: string | null;
+  account?: { id: string; name: string; type: AccountType } | null;
+}
+
+export interface NetWorthPoint {
+  month: string;
+  net_worth: number;
 }
 
 export interface Paged<T> {
@@ -30,6 +77,38 @@ export interface Paged<T> {
   count: number;
   limit: number;
   offset: number;
+}
+
+export type MatchType = 'contains' | 'equals' | 'regex';
+export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface CategorizationRule {
+  id: string;
+  match: MatchType;
+  pattern: string;
+  category_id: string;
+  priority: number;
+  is_active: boolean;
+  category?: { id: string; name: string; need_class: NeedClass } | null;
+}
+
+export interface RecurringTransaction {
+  id: string;
+  description: string;
+  amount: number;
+  direction: Direction;
+  frequency: Frequency;
+  interval_count: number;
+  next_run: string;
+  end_date: string | null;
+  is_active: boolean;
+  last_generated: string | null;
+  category_id: string | null;
+  payment_type_id: string | null;
+  account_id: string | null;
+  transfer_account_id: string | null;
+  category?: { id: string; name: string } | null;
+  account?: { id: string; name: string } | null;
 }
 
 export interface BudgetItem {
@@ -67,6 +146,9 @@ export interface Loan {
 }
 
 export interface Summary {
+  income: number;
+  expense: number;
+  net: number;
   total: number;
   planned: number;
   unplanned: number;
@@ -99,4 +181,14 @@ export interface ImportRow {
   category?: string;
   payment_type?: string;
   planned?: boolean;
+}
+
+export interface ImportPreview {
+  total: number;
+  duplicates: number;
+  newRows: number;
+  newCategories: string[];
+  newPaymentTypes: string[];
+  /** Duplicate flag per input row, aligned to the order sent. */
+  flags: boolean[];
 }
