@@ -60,7 +60,7 @@ import { LogoComponent } from '../shared/logo.component';
         padding: 24px;
         overflow: hidden;
         background: oklch(0.16 0.01 240);
-        font-family: 'Manrope', sans-serif;
+        font-family: 'Inter', sans-serif;
       }
       .glow {
         position: absolute;

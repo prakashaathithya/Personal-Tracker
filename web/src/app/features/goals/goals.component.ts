@@ -108,8 +108,8 @@ interface GoalView extends SavingsGoal {
       .add-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
       .plain-input {
         height: 44px; padding: 0 12px; border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); color: inherit;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); color: inherit;
         font-family: inherit; font-size: 0.92rem; box-sizing: border-box; outline: none;
       }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
@@ -118,7 +118,7 @@ interface GoalView extends SavingsGoal {
       .plain-input-wrap .prefix { position: absolute; left: 12px; color: var(--mat-sys-on-surface-variant); }
       .plain-input.amt { padding-left: 26px; width: 140px; }
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
+        background: var(--accent-grad);
         color: #fff; border: none; border-radius: 10px; padding: 0 18px; height: 44px;
         font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center;
         justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap;
@@ -131,8 +131,8 @@ interface GoalView extends SavingsGoal {
       .goal-name { font-weight: 700; font-size: 1.05rem; }
       .goal-amounts { margin: 6px 0 10px; }
       .goal-amounts .cur {
-        font-family: 'Sora', sans-serif; font-size: 1.4rem; font-weight: 700;
-        color: light-dark(#0f9d76, #34d399);
+        font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 700;
+        color: var(--accent-ink);
       }
       .goal-amounts .of { color: var(--mat-sys-on-surface-variant); margin-left: 6px; font-size: 0.85rem; }
       .goal-foot {
@@ -144,8 +144,8 @@ interface GoalView extends SavingsGoal {
       .goal-foot .link mat-icon { font-size: 14px; width: 14px; height: 14px; }
       .mini-input {
         width: 110px; height: 32px; padding: 0 8px; border-radius: 8px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); color: inherit; font-family: inherit;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); color: inherit; font-family: inherit;
       }
       .empty { color: var(--mat-sys-on-surface-variant); }
     `,

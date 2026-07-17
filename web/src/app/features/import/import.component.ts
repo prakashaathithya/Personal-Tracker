@@ -314,7 +314,7 @@ interface PreviewRow extends ImportRow {
         margin-bottom: 6px;
 
         mat-icon { font-size: 16px; width: 16px; height: 16px; }
-        span { color: light-dark(#0f9d76, #34d399); }
+        span { color: var(--accent-ink); }
       }
 
       /* ---- Stepper ---- */
@@ -335,7 +335,7 @@ interface PreviewRow extends ImportRow {
         width: 30px;
         height: 30px;
         border-radius: 50%;
-        border: 2px solid light-dark(#e2e8f0, #2a3b33);
+        border: 2px solid var(--field-border);
         color: var(--mat-sys-on-surface-variant);
         font-weight: 700;
         font-size: 0.85rem;
@@ -357,14 +357,14 @@ interface PreviewRow extends ImportRow {
       .step.done .step-label { color: var(--mat-sys-on-surface); }
       .step.active .step-circle {
         border-color: var(--mat-sys-primary);
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
       }
       .step.active .step-label { color: var(--mat-sys-on-surface); }
       .step-line {
         flex: 1 1 auto;
         height: 2px;
         margin: 0 16px;
-        background: light-dark(#e2e8f0, #2a3b33);
+        background: var(--field-border);
       }
       .step-line.filled { background: var(--mat-sys-primary); }
 
@@ -405,7 +405,7 @@ interface PreviewRow extends ImportRow {
       .col-chip {
         padding: 2px 8px;
         border-radius: 6px;
-        background: light-dark(#f1f5f9, #1e2925);
+        background: var(--surface-2);
         font-size: 0.78rem;
       }
       .link-btn {
@@ -414,7 +414,7 @@ interface PreviewRow extends ImportRow {
         gap: 4px;
         border: none;
         background: none;
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
         font-weight: 600;
         font-size: 0.85rem;
         cursor: pointer;
@@ -434,8 +434,8 @@ interface PreviewRow extends ImportRow {
         gap: 14px;
         padding: 16px;
         border-radius: 12px;
-        border: 1.5px dashed light-dark(#b7d9cb, #2c4038);
-        background: light-dark(#f2f7f4, #16211c);
+        border: 1.5px dashed var(--field-border);
+        background: var(--surface-2);
         cursor: pointer;
         transition: border-color 120ms ease, background 120ms ease;
 
@@ -490,10 +490,10 @@ interface PreviewRow extends ImportRow {
         height: 44px;
         padding: 0 14px;
         border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25);
+        border: 1px solid var(--field-border);
+        background: var(--field-bg);
         color: inherit;
-        font-family: Roboto, sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.92rem;
         box-sizing: border-box;
         outline: none;
@@ -501,7 +501,7 @@ interface PreviewRow extends ImportRow {
       }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
 
-      .error { color: light-dark(#c62828, #f87171); margin-top: 12px; margin-bottom: 0; }
+      .error { color: var(--danger); margin-top: 12px; margin-bottom: 0; }
 
       /* ---- Summary card ---- */
       .summary-empty {
@@ -518,7 +518,7 @@ interface PreviewRow extends ImportRow {
       .summary-tile {
         padding: 14px;
         border-radius: 12px;
-        background: light-dark(#f8fafc, #16211c);
+        background: var(--surface-2);
       }
       .summary-tile.warn {
         background: light-dark(#fef3c7, rgba(217, 119, 6, 0.14));
@@ -530,12 +530,12 @@ interface PreviewRow extends ImportRow {
         color: var(--mat-sys-on-surface-variant);
       }
       .tile-value {
-        font-family: 'Sora', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 1.4rem;
         font-weight: 700;
         margin-top: 6px;
       }
-      .tile-value.accent { color: light-dark(#0f9d76, #34d399); }
+      .tile-value.accent { color: var(--accent-ink); }
       .summary-tile.warn .tile-value { color: light-dark(#92400e, #fcd34d); }
       .tile-sub {
         font-size: 0.75rem;
@@ -587,8 +587,8 @@ interface PreviewRow extends ImportRow {
         gap: 6px;
         padding: 8px 16px;
         border-radius: 999px;
-        border: 1px solid light-dark(#e2e8f0, #2a3b33);
-        background: light-dark(#ffffff, #18201c);
+        border: 1px solid var(--field-border);
+        background: var(--surface-2);
         color: var(--mat-sys-on-surface);
         font-family: inherit;
         font-size: 0.85rem;
@@ -617,11 +617,11 @@ interface PreviewRow extends ImportRow {
         max-width: 320px;
         padding: 7px 14px;
         border-radius: 999px;
-        background: light-dark(#ffffff, #18201c);
-        border: 1px solid light-dark(#e2e8f0, #2a3b33);
+        background: var(--surface-2);
+        border: 1px solid var(--field-border);
 
         mat-icon {
-          color: light-dark(#94a3b8, #6b8478);
+          color: var(--ink-faint);
           font-size: 18px;
           width: 18px;
           height: 18px;
@@ -635,7 +635,7 @@ interface PreviewRow extends ImportRow {
           color: var(--mat-sys-on-surface);
           font-family: inherit;
 
-          &::placeholder { color: light-dark(#94a3b8, #6b8478); }
+          &::placeholder { color: var(--ink-faint); }
         }
       }
 
@@ -644,7 +644,7 @@ interface PreviewRow extends ImportRow {
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: light-dark(#94a3b8, #7a9188);
+        color: var(--ink-faint);
       }
       .description-cell { font-weight: 600; }
       .amount-cell { font-weight: 700; }
@@ -720,8 +720,8 @@ interface PreviewRow extends ImportRow {
         margin-top: 16px;
         padding: 14px 20px;
         border-radius: 14px;
-        background: light-dark(#ffffff, #18201c);
-        border: 1px solid light-dark(#e2efe9, #24312b);
+        background: var(--surface-2);
+        border: 1px solid var(--hairline);
         box-shadow: 0 12px 28px light-dark(rgba(16, 40, 30, 0.12), rgba(0, 0, 0, 0.45));
       }
       .import-summary { font-size: 0.9rem; }
@@ -731,7 +731,7 @@ interface PreviewRow extends ImportRow {
         height: 42px;
         padding: 0 20px;
         border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
+        border: 1px solid var(--field-border);
         background: transparent;
         color: var(--mat-sys-on-surface);
         font-weight: 600;
@@ -748,13 +748,13 @@ interface PreviewRow extends ImportRow {
         padding: 0 20px;
         border-radius: 10px;
         border: none;
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
-        color: #ffffff;
+        background: var(--accent-grad);
+        color: var(--on-accent);
         font-weight: 700;
         font-size: 0.9rem;
         cursor: pointer;
         box-shadow:
-          0 4px 0 #0b7f66,
+          0 4px 14px oklch(0.6 0.15 168 / 0.35),
           0 6px 14px rgba(16, 185, 129, 0.35);
         transition: transform 90ms ease, box-shadow 90ms ease;
 
@@ -762,7 +762,7 @@ interface PreviewRow extends ImportRow {
         &:active:not(:disabled) {
           transform: translateY(3px);
           box-shadow:
-            0 1px 0 #0b7f66,
+            0 1px 6px oklch(0.6 0.15 168 / 0.3),
             0 2px 6px rgba(16, 185, 129, 0.3);
         }
         &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }

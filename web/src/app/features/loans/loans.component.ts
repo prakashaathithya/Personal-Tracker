@@ -250,7 +250,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         height: 24px;
         padding: 0 6px;
         border-radius: 999px;
-        background: light-dark(#eef2f0, #1e2925);
+        background: var(--surface-2);
         color: var(--mat-sys-on-surface-variant);
         font-size: 0.78rem;
         font-weight: 700;
@@ -275,7 +275,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         transition: background 150ms ease, border-color 150ms ease;
       }
       .loan-item:last-child { margin-bottom: 0; }
-      .loan-item:hover { background: light-dark(#f2f7f4, #1a2420); }
+      .loan-item:hover { background: var(--hover-bg); }
       .loan-item.active {
         background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
         border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, transparent);
@@ -288,7 +288,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         height: 38px;
         border-radius: 10px;
         background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
 
         mat-icon { font-size: 20px; width: 20px; height: 20px; }
       }
@@ -299,7 +299,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         display: block;
         height: 5px;
         border-radius: 999px;
-        background: light-dark(#e2efe9, #24312b);
+        background: var(--hairline);
         overflow: hidden;
         margin-top: 2px;
       }
@@ -307,7 +307,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         display: block;
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #34d399, #10b981);
+        background: var(--accent-grad);
       }
       .icon-btn {
         display: grid;
@@ -321,11 +321,11 @@ import { Loan, LoanScheduleRow } from '../../core/models';
 
         mat-icon { font-size: 18px; width: 18px; height: 18px; }
       }
-      .icon-btn:hover { background: light-dark(#fde8e8, #3a2020); color: light-dark(#dc2626, #f87171); }
+      .icon-btn:hover { background: light-dark(#fde8e8, #3a2020); color: var(--danger); }
 
       /* ---- Add / edit loan form ---- */
       .add-box {
-        background: light-dark(#f2f7f4, #1a2420);
+        background: var(--hover-bg);
         border-radius: 14px;
         padding: 18px;
         box-sizing: border-box;
@@ -340,21 +340,21 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         height: 44px;
         padding: 0 14px;
         border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25);
+        border: 1px solid var(--field-border);
+        background: var(--field-bg);
         color: inherit;
-        font-family: Roboto, sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.92rem;
         box-sizing: border-box;
         outline: none;
         transition: border-color 150ms ease;
       }
-      .plain-input::placeholder { color: light-dark(#9aa9a2, #5d6b64); }
+      .plain-input::placeholder { color: var(--ink-faint); }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
 
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
-        color: #ffffff;
+        background: var(--accent-grad);
+        color: var(--on-accent);
         border: none;
         border-radius: 10px;
         padding: 0 20px;
@@ -367,11 +367,11 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         gap: 6px;
         cursor: pointer;
         white-space: nowrap;
-        box-shadow: 0 4px 0 #0b7f66, 0 6px 14px rgba(16, 185, 129, 0.35);
+        box-shadow: 0 4px 14px oklch(0.6 0.15 168 / 0.35), 0 6px 14px rgba(16, 185, 129, 0.35);
         transition: transform 90ms ease, box-shadow 90ms ease;
       }
       .action-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
-      .action-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b7f66, 0 2px 6px rgba(16, 185, 129, 0.3); }
+      .action-btn:active { transform: translateY(3px); box-shadow: 0 1px 6px oklch(0.6 0.15 168 / 0.3), 0 2px 6px rgba(16, 185, 129, 0.3); }
       .action-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
       .action-btn.full-width { width: 100%; margin-top: 4px; }
 
@@ -390,8 +390,8 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         height: 36px;
         padding: 0 16px;
         border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25);
+        border: 1px solid var(--field-border);
+        background: var(--field-bg);
         color: inherit;
         font-weight: 600;
         font-size: 0.85rem;
@@ -409,15 +409,15 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         height: 44px;
         border-radius: 12px;
         background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
         flex: 0 0 auto;
       }
-      .detail-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.2rem; }
+      .detail-title { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.2rem; }
       .detail-sub { font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); margin-top: 2px; }
 
       /* ---- Summary panel ---- */
       .summary-panel {
-        background: linear-gradient(135deg, #10b981 0%, #059669 55%, #047857 100%);
+        background: var(--accent-grad-deep);
         border-radius: 16px;
         padding: 24px;
         color: #ffffff;
@@ -425,11 +425,11 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         box-shadow: 0 12px 28px rgba(5, 150, 105, 0.35);
       }
       .summary-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-      .summary-percent { font-family: 'Sora', sans-serif; font-size: 2.4rem; font-weight: 800; line-height: 1; }
+      .summary-percent { font-family: 'Inter', sans-serif; font-size: 2.4rem; font-weight: 800; line-height: 1; }
       .summary-label { font-size: 0.95rem; opacity: 0.9; margin-top: 2px; }
       .summary-stats { display: flex; gap: 32px; }
       .summary-stat-label { font-size: 0.8rem; opacity: 0.85; }
-      .summary-stat-value { font-family: 'Sora', sans-serif; font-size: 1.3rem; font-weight: 700; margin-top: 4px; }
+      .summary-stat-value { font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 700; margin-top: 4px; }
       .summary-bar {
         height: 8px;
         border-radius: 999px;
@@ -448,8 +448,8 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         margin-bottom: 16px;
       }
       .mini-stat-card {
-        background: light-dark(#ffffff, #18201c);
-        border: 1px solid light-dark(#e2efe9, #24312b);
+        background: var(--surface-2);
+        border: 1px solid var(--hairline);
         border-radius: 14px;
         padding: 16px 18px;
         box-sizing: border-box;
@@ -463,7 +463,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
 
         mat-icon { font-size: 16px; width: 16px; height: 16px; }
       }
-      .mini-stat-value { font-family: 'Sora', sans-serif; font-size: 1.3rem; font-weight: 700; margin-top: 6px; }
+      .mini-stat-value { font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 700; margin-top: 6px; }
       .mini-stat-sub { font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); margin-top: 2px; }
       .mini-stat-card.next-due {
         display: flex;
@@ -473,7 +473,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
         border-color: color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
       }
-      .mini-stat-card.next-due .mini-stat-label { color: light-dark(#0f9d76, #34d399); font-weight: 600; }
+      .mini-stat-card.next-due .mini-stat-label { color: var(--accent-ink); font-weight: 600; }
       .mini-stat-card.next-due.done { justify-content: flex-start; }
       .mini-stat-card.next-due .action-btn { height: 36px; padding: 0 16px; font-size: 0.85rem; }
 
@@ -493,7 +493,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         margin-left: 10px;
       }
       .legend-dot:first-child { margin-left: 0; }
-      .legend-dot.paid { background: light-dark(#0f9d76, #34d399); }
+      .legend-dot.paid { background: var(--accent-ink); }
       .legend-dot.due { background: #f59e0b; }
 
       .row-badge {
@@ -504,16 +504,16 @@ import { Loan, LoanScheduleRow } from '../../core/models';
         border-radius: 50%;
         font-size: 0.75rem;
         font-weight: 700;
-        background: light-dark(#eef2f0, #1e2925);
+        background: var(--surface-2);
         color: var(--mat-sys-on-surface-variant);
 
         mat-icon { font-size: 16px; width: 16px; height: 16px; }
       }
-      .row-badge.paid { background: light-dark(#0f9d76, #34d399); color: #ffffff; }
+      .row-badge.paid { background: var(--accent); color: var(--on-accent); }
       .row-badge.due { background: #f59e0b; color: #ffffff; }
 
       .amt-interest { color: #b45309; }
-      .amt-principal { color: light-dark(#0f9d76, #34d399); }
+      .amt-principal { color: var(--accent-ink); }
 
       .mat-mdc-header-cell { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; }
       tr.row-due { background: color-mix(in srgb, #f59e0b 10%, transparent); }

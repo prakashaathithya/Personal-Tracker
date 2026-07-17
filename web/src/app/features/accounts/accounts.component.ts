@@ -94,8 +94,8 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
         color: var(--mat-sys-on-surface-variant);
       }
       .networth-value {
-        font-family: 'Sora', sans-serif; font-weight: 700; font-size: 1.6rem;
-        color: light-dark(#0f9d76, #34d399);
+        font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.6rem;
+        color: var(--accent-ink);
       }
 
       .account-grid {
@@ -118,25 +118,25 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
       }
       .acc-name { font-weight: 600; margin-top: 12px; }
       .acc-balance {
-        font-family: 'Sora', sans-serif; font-size: 1.5rem; font-weight: 700; margin-top: 4px;
+        font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 700; margin-top: 4px;
       }
-      .acc-balance.neg { color: light-dark(#dc2626, #f87171); }
+      .acc-balance.neg { color: var(--danger); }
       .acc-opening { font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); margin-top: 4px; }
 
       .card-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 14px; }
       .add-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
       .plain-input {
         height: 44px; padding: 0 14px; border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); color: inherit;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); color: inherit;
         font-family: inherit; font-size: 0.92rem; box-sizing: border-box; outline: none;
       }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
       .plain-input.name { flex: 1 1 200px; }
       .type-select {
         min-width: 150px; height: 44px; padding: 0 14px; border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); display: flex; align-items: center;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); display: flex; align-items: center;
       }
       .plain-input-wrap { position: relative; display: flex; align-items: center; }
       .plain-input-wrap.amount { width: 150px; }
@@ -146,7 +146,7 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
       }
       .plain-input-wrap .prefix + .plain-input { padding-left: 28px; width: 100%; }
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
+        background: var(--accent-grad);
         color: #fff; border: none; border-radius: 10px; padding: 0 20px; height: 44px;
         font-weight: 600; font-size: 0.92rem; display: inline-flex; align-items: center;
         justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap;

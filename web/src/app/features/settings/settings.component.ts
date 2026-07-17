@@ -123,7 +123,7 @@ const PAYMENT_ICONS: Record<string, string> = {
 
         h2 {
           margin: 0;
-          font-family: 'Sora', Roboto, sans-serif;
+          font-family: 'Inter', sans-serif;
           font-size: 1.15rem;
           font-weight: 700;
         }
@@ -138,7 +138,7 @@ const PAYMENT_ICONS: Record<string, string> = {
         justify-content: center;
         font-size: 0.75rem;
         font-weight: 700;
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
         background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
       }
 
@@ -148,10 +148,10 @@ const PAYMENT_ICONS: Record<string, string> = {
         height: 48px;
         padding: 0 14px;
         border-radius: 10px;
-        border: 1px solid light-dark(#e2e8e5, #2a3730);
-        background: light-dark(#f7f9f8, #1b2420);
+        border: 1px solid var(--hairline);
+        background: var(--surface-2);
         color: var(--mat-sys-on-surface);
-        font-family: Roboto, sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.95rem;
         outline: none;
         transition: border-color 0.15s ease;
@@ -220,12 +220,12 @@ const PAYMENT_ICONS: Record<string, string> = {
         overflow-y: auto;
         margin-top: 8px;
         scrollbar-width: thin;
-        scrollbar-color: light-dark(#d6dcd9, #2e3b34) transparent;
+        scrollbar-color: light-dark(rgba(20,45,60,0.25), rgba(255,255,255,0.15)) transparent;
 
         &::-webkit-scrollbar { width: 6px; }
         &::-webkit-scrollbar-track { background: transparent; }
         &::-webkit-scrollbar-thumb {
-          background: light-dark(#d6dcd9, #2e3b34);
+          background: light-dark(rgba(20,45,60,0.25), rgba(255,255,255,0.15));
           border-radius: 999px;
         }
       }
@@ -234,7 +234,7 @@ const PAYMENT_ICONS: Record<string, string> = {
         align-items: center;
         gap: 12px;
         padding: 12px 4px;
-        border-bottom: 1px solid light-dark(#eef2f0, #24312b);
+        border-bottom: 1px solid var(--hairline);
 
         &:last-child { border-bottom: none; }
       }
@@ -246,7 +246,7 @@ const PAYMENT_ICONS: Record<string, string> = {
         color: var(--mat-sys-on-surface-variant);
         opacity: 0.6;
 
-        &:hover { opacity: 1; color: light-dark(#dc2626, #f87171); }
+        &:hover { opacity: 1; color: var(--danger); }
       }
       .icon-badge {
         display: grid;
@@ -254,7 +254,7 @@ const PAYMENT_ICONS: Record<string, string> = {
         width: 34px;
         height: 34px;
         border-radius: 9px;
-        background: light-dark(#f1f3f5, #24312b);
+        background: var(--hover-bg);
         color: var(--mat-sys-on-surface-variant);
 
         mat-icon { font-size: 19px; width: 19px; height: 19px; }

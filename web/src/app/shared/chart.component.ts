@@ -14,7 +14,11 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-chart',
   template: '<canvas #canvas></canvas>',
-  styles: [':host { display: block; position: relative; height: 280px; }'],
+  // color/border-color mirror the theme tokens so the chart can read them
+  // back fully resolved (canvas can't parse raw light-dark() expressions).
+  styles: [
+    ':host { display: block; position: relative; height: 280px; color: var(--ink-soft); border-color: var(--hairline); }',
+  ],
 })
 export class ChartComponent implements AfterViewInit, OnDestroy {
   readonly config = input.required<ChartConfiguration>();
@@ -40,12 +44,12 @@ export class ChartComponent implements AfterViewInit, OnDestroy {
     const host = this.canvas().nativeElement;
 
     // Pull live theme colors so charts stay readable in light & dark.
-    const cs = getComputedStyle(host);
-    const text = cs.getPropertyValue('--mat-sys-on-surface').trim();
-    const grid = cs.getPropertyValue('--mat-sys-outline-variant').trim();
+    const cs = getComputedStyle(host.parentElement ?? host);
+    const text = cs.color;
+    const grid = cs.borderColor;
     if (text) Chart.defaults.color = text;
     if (grid) Chart.defaults.borderColor = grid;
-    Chart.defaults.font.family = "'Sora', Roboto, sans-serif";
+    Chart.defaults.font.family = "'Inter', sans-serif";
 
     this.chart = new Chart(host, config);
   }

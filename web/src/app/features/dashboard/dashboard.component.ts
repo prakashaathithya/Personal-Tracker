@@ -17,11 +17,14 @@ import {
 } from '../../core/models';
 import { ChartComponent } from '../../shared/chart.component';
 
-// MoneyMap palette — mint/green-led, fresh and distinct
+// Glass dashboard palette — teal-led aurora hues from the design
 const PALETTE = [
-  '#10b981', '#14b8a6', '#0ea5e9', '#22c55e', '#84cc16',
-  '#06b6d4', '#f59e0b', '#f43f5e', '#8b5cf6', '#64748b',
+  '#34d09b', '#3fb6c9', '#5a9bf6', '#55d669', '#9ee04f',
+  '#4f8ef7', '#f2a24a', '#f06ec0', '#a678e6', '#8a8f9c',
 ];
+const TEAL = '#34d09b';
+const BLUE = '#5a9bf6';
+const RED = '#ef6a5f';
 
 @Component({
   selector: 'app-dashboard',
@@ -143,13 +146,16 @@ const PALETTE = [
         padding-bottom: 8px;
       }
       .filters .picker ::ng-deep .mat-mdc-form-field-flex { align-items: center; }
-      .label { font-size: 0.85rem; opacity: 0.7; }
-      .value { font-size: 1.5rem; font-weight: 600; margin-top: 4px; }
-      .value.pos { color: light-dark(#0f9d76, #34d399); }
-      .value.neg { color: light-dark(#dc2626, #f87171); }
-      .cards-row .highlight {
-        background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent) !important;
+      .label { font-size: 0.85rem; font-weight: 500; color: var(--ink-soft); }
+      .value {
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        margin-top: 8px;
+        color: var(--ink);
       }
+      .value.pos { color: var(--accent-bright); }
+      .value.neg { color: var(--danger); }
       .charts {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -275,7 +281,7 @@ export class DashboardComponent {
       type: 'pie',
       data: {
         labels: ['Salary', 'Spends'],
-        datasets: [{ data: [salary, spends], backgroundColor: ['#10b981', '#f43f5e'] }],
+        datasets: [{ data: [salary, spends], backgroundColor: [TEAL, RED] }],
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } },
     };
@@ -298,8 +304,8 @@ export class DashboardComponent {
           {
             label: 'Net worth',
             data: rows.map((r) => r.net_worth),
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            borderColor: TEAL,
+            backgroundColor: 'rgba(52, 208, 155, 0.15)',
             fill: true,
             tension: 0.3,
             pointRadius: 2,
@@ -322,8 +328,8 @@ export class DashboardComponent {
       data: {
         labels,
         datasets: [
-          { label: 'Salary', data: rows.map((r) => r.salary), backgroundColor: '#10b981', borderRadius: 6 },
-          { label: 'Usage', data: rows.map((r) => r.usage), backgroundColor: '#0ea5e9', borderRadius: 6 },
+          { label: 'Salary', data: rows.map((r) => r.salary), backgroundColor: TEAL, borderRadius: 6 },
+          { label: 'Usage', data: rows.map((r) => r.usage), backgroundColor: BLUE, borderRadius: 6 },
         ],
       },
       options: { responsive: true, maintainAspectRatio: false },

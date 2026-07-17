@@ -87,8 +87,8 @@ import { CategorizationRule, Category, MatchType } from '../../core/models';
       .add-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
       .plain-input {
         height: 44px; padding: 0 12px; border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); color: inherit;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); color: inherit;
         font-family: inherit; font-size: 0.92rem; box-sizing: border-box; outline: none;
       }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
@@ -97,7 +97,7 @@ import { CategorizationRule, Category, MatchType } from '../../core/models';
       .plain-input.cat { flex: 0 0 180px; }
       .arrow { color: var(--mat-sys-on-surface-variant); font-size: 20px; }
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
+        background: var(--accent-grad);
         color: #fff; border: none; border-radius: 10px; padding: 0 18px; height: 44px;
         font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center;
         justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap;
@@ -107,13 +107,13 @@ import { CategorizationRule, Category, MatchType } from '../../core/models';
 
       .rule-row {
         display: flex; align-items: center; gap: 10px; padding: 10px 4px;
-        border-bottom: 1px solid light-dark(#eef4f1, #202a25);
+        border-bottom: 1px solid var(--hairline);
       }
       .rule-row.off { opacity: 0.5; }
       .match-chip {
         font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
         color: var(--mat-sys-on-surface-variant);
-        background: light-dark(#f1f5f9, #1e2925); padding: 4px 10px; border-radius: 8px;
+        background: var(--surface-2); padding: 4px 10px; border-radius: 8px;
       }
       .pattern { font-weight: 600; }
       .cat-chip {

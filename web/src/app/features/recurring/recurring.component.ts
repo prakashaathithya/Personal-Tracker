@@ -122,8 +122,8 @@ import {
       .add-grid { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
       .plain-input {
         height: 44px; padding: 0 12px; border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25); color: inherit;
+        border: 1px solid var(--field-border);
+        background: var(--field-bg); color: inherit;
         font-family: inherit; font-size: 0.92rem; box-sizing: border-box; outline: none;
       }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
@@ -135,28 +135,28 @@ import {
       .plain-input.amt { padding-left: 26px; width: 130px; }
       .inline-field { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); }
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
+        background: var(--accent-grad);
         color: #fff; border: none; border-radius: 10px; padding: 0 18px; height: 44px;
         font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center;
         justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap;
       }
       .action-btn.ghost {
         background: transparent; color: var(--mat-sys-on-surface);
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
+        border: 1px solid var(--field-border);
       }
       .action-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
       .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
       .rec-row {
         display: flex; align-items: center; gap: 12px; padding: 12px 4px;
-        border-bottom: 1px solid light-dark(#eef4f1, #202a25);
+        border-bottom: 1px solid var(--hairline);
       }
       .rec-row.off { opacity: 0.5; }
       .rec-main { display: flex; flex-direction: column; }
       .rec-desc { font-weight: 600; }
       .rec-meta { font-size: 0.8rem; color: var(--mat-sys-on-surface-variant); margin-top: 2px; }
-      .rec-amt { font-family: 'Sora', sans-serif; font-weight: 700; }
-      .rec-amt.income { color: light-dark(#0f9d76, #34d399); }
+      .rec-amt { font-family: 'Inter', sans-serif; font-weight: 700; }
+      .rec-amt.income { color: var(--accent-ink); }
       .empty { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
     `,
   ],

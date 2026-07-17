@@ -44,8 +44,8 @@ export class ThemeService {
 
 function readStored(): ThemeMode {
   const stored = localStorage.getItem(STORAGE_KEY);
-  // Calm Indigo is light-first; dark remains available via the toggle.
+  // Glass Dashboard is dark-first; light remains available via the toggle.
   return stored === 'light' || stored === 'dark' || stored === 'system'
     ? stored
-    : 'light';
+    : 'dark';
 }

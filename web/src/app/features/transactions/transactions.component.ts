@@ -170,11 +170,11 @@ import {
         max-width: 420px;
         padding: 9px 16px;
         border-radius: 999px;
-        background: light-dark(#ffffff, #18201c);
-        border: 1px solid light-dark(#e2e8f0, #2a3b33);
+        background: var(--surface-2);
+        border: 1px solid var(--field-border);
 
         mat-icon {
-          color: light-dark(#94a3b8, #6b8478);
+          color: var(--ink-faint);
           cursor: pointer;
           font-size: 20px;
           width: 20px;
@@ -190,7 +190,7 @@ import {
           color: var(--mat-sys-on-surface);
           font-family: inherit;
 
-          &::placeholder { color: light-dark(#94a3b8, #6b8478); }
+          &::placeholder { color: var(--ink-faint); }
         }
       }
 
@@ -202,8 +202,8 @@ import {
       .filter-pill {
         padding: 9px 20px;
         border-radius: 999px;
-        border: 1px solid light-dark(#e2e8f0, #2a3b33);
-        background: light-dark(#ffffff, #18201c);
+        border: 1px solid var(--field-border);
+        background: var(--surface-2);
         color: var(--mat-sys-on-surface);
         font-family: inherit;
         font-size: 0.9rem;
@@ -234,13 +234,13 @@ import {
       table { background: transparent; }
 
       .mat-mdc-header-row {
-        background: light-dark(#f3f5f7, #1b2420);
+        background: var(--surface-2);
       }
       .mat-mdc-header-cell {
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.06em;
-        color: light-dark(#94a3b8, #7a9188);
+        color: var(--ink-faint);
         padding: 14px 16px;
       }
       .mat-mdc-cell {
@@ -254,7 +254,7 @@ import {
           width: 36px;
           height: 36px;
           padding: 6px;
-          color: light-dark(#94a3b8, #6b8478);
+          color: var(--ink-faint);
 
           mat-icon { font-size: 18px; width: 18px; height: 18px; }
         }
@@ -280,7 +280,7 @@ import {
         background: light-dark(#e0f2fe, #0c2a3a);
         color: light-dark(#075985, #7dd3fc);
       }
-      .amount-income { color: light-dark(#0f9d76, #34d399); }
+      .amount-income { color: var(--accent-ink); }
 
       .empty { text-align: center; opacity: 0.6; padding: 32px; }
     `,
@@ -360,7 +360,12 @@ export class TransactionsComponent {
       transaction,
     };
     this.dialog
-      .open(TransactionDialogComponent, { data })
+      .open(TransactionDialogComponent, {
+        data,
+        width: '480px',
+        maxWidth: '94vw',
+        panelClass: 'txn-dialog-panel',
+      })
       .afterClosed()
       .subscribe((result?: Partial<Transaction>) => {
         if (!result) return;

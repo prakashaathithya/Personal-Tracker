@@ -244,7 +244,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         mat-icon { font-size: 18px; width: 18px; height: 18px; }
       }
       .stat-value {
-        font-family: 'Sora', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 1.7rem;
         font-weight: 700;
         margin-top: 12px;
@@ -269,10 +269,10 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
       .progress-amounts { font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); }
       .progress-percent { text-align: right; }
       .progress-percent-value {
-        font-family: 'Sora', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 1.3rem;
         font-weight: 700;
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
       }
       .progress-percent-label {
         font-size: 0.72rem;
@@ -296,15 +296,15 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         color: var(--mat-sys-on-surface-variant);
       }
       .card-total-value {
-        font-family: 'Sora', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-weight: 700;
         font-size: 1.25rem;
-        color: light-dark(#0f9d76, #34d399);
+        color: var(--accent-ink);
         margin-top: 2px;
       }
 
       .add-box {
-        background: light-dark(#f2f7f4, #1a2420);
+        background: var(--hover-bg);
         border-radius: 14px;
         padding: 18px;
         margin-bottom: 18px;
@@ -327,16 +327,16 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         height: 44px;
         padding: 0 14px;
         border-radius: 10px;
-        border: 1px solid light-dark(#dbe7e1, #2c3a33);
-        background: light-dark(#ffffff, #202a25);
+        border: 1px solid var(--field-border);
+        background: var(--field-bg);
         color: inherit;
-        font-family: Roboto, sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 0.92rem;
         box-sizing: border-box;
         outline: none;
         transition: border-color 150ms ease;
       }
-      .plain-input::placeholder { color: light-dark(#9aa9a2, #5d6b64); }
+      .plain-input::placeholder { color: var(--ink-faint); }
       .plain-input:focus { border-color: var(--mat-sys-primary); }
       .plain-input.has-suffix { padding-right: 40px; cursor: pointer; }
 
@@ -359,8 +359,8 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
       }
 
       .action-btn {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #0d9488 100%);
-        color: #ffffff;
+        background: var(--accent-grad);
+        color: var(--on-accent);
         border: none;
         border-radius: 10px;
         padding: 0 20px;
@@ -374,7 +374,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         cursor: pointer;
         white-space: nowrap;
         box-shadow:
-          0 4px 0 #0b7f66,
+          0 4px 14px oklch(0.6 0.15 168 / 0.35),
           0 6px 14px rgba(16, 185, 129, 0.35);
         transition: transform 90ms ease, box-shadow 90ms ease;
       }
@@ -382,7 +382,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
       .action-btn:active {
         transform: translateY(3px);
         box-shadow:
-          0 1px 0 #0b7f66,
+          0 1px 6px oklch(0.6 0.15 168 / 0.3),
           0 2px 6px rgba(16, 185, 129, 0.3);
       }
       .action-btn:disabled {
@@ -397,7 +397,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: light-dark(#10b981, #34d399);
+        background: var(--accent);
         margin-right: 10px;
         vertical-align: middle;
       }
@@ -414,7 +414,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         padding: 12px 16px;
         margin-top: 4px;
         font-weight: 600;
-        border-top: 1px solid light-dark(#e2efe9, #24312b);
+        border-top: 1px solid var(--hairline);
       }
     `,
   ],
