@@ -67,11 +67,16 @@ import { LogoComponent } from '../shared/logo.component';
       }
       .auth-wrap {
         position: relative;
-        min-height: 100vh;
+        /* dvh + safe-area: keeps the card clear of mobile browser chrome
+           and the Android gesture bar. */
+        min-height: 100dvh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 24px;
+        padding: calc(24px + env(safe-area-inset-top, 0px))
+                 calc(20px + env(safe-area-inset-right, 0px))
+                 calc(24px + env(safe-area-inset-bottom, 0px))
+                 calc(20px + env(safe-area-inset-left, 0px));
         overflow: hidden;
         background: oklch(0.16 0.01 240);
         font-family: 'Inter', sans-serif;
@@ -239,6 +244,23 @@ import { LogoComponent } from '../shared/logo.component';
       }
       .footer a:hover {
         text-decoration: underline;
+      }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .auth-card {
+          gap: 22px;
+          padding: 30px 22px 26px;
+        }
+        .headline h1 { font-size: 25px; }
+        /* 16px keeps mobile browsers from auto-zooming on focus. */
+        .field input { font-size: 16px; padding: 14px; }
+        .submit { padding: 16px; }
+        /* Blurred glows this large tank scroll/paint performance on
+           mid-range phones for background decoration. */
+        .glow { filter: blur(30px); }
+        .glow-mint { width: 300px; height: 300px; top: -110px; left: -110px; }
+        .glow-blue { width: 290px; height: 290px; bottom: -110px; right: -110px; }
       }
     `,
   ],

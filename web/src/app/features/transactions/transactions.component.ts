@@ -86,10 +86,12 @@ import {
       <mat-card class="txn-card">
         @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
 
-        <table mat-table [dataSource]="rows()" class="full-width">
+        <table mat-table [dataSource]="rows()" class="full-width stacked-table">
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let t">{{ t.txn_date | date: 'dd MMM yyyy' }}</td>
+            <td mat-cell *matCellDef="let t" class="cell-date">
+              {{ t.txn_date | date: 'dd MMM yyyy' }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="description">
             <th mat-header-cell *matHeaderCellDef>Description</th>
@@ -97,11 +99,11 @@ import {
           </ng-container>
           <ng-container matColumnDef="category">
             <th mat-header-cell *matHeaderCellDef>Category</th>
-            <td mat-cell *matCellDef="let t">{{ t.category?.name ?? '—' }}</td>
+            <td mat-cell *matCellDef="let t" class="cell-category">{{ t.category?.name ?? '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="account">
             <th mat-header-cell *matHeaderCellDef>Account</th>
-            <td mat-cell *matCellDef="let t">
+            <td mat-cell *matCellDef="let t" class="cell-account">
               @if (t.direction === 'transfer') {
                 {{ t.account?.name ?? '—' }} → {{ t.transfer_account?.name ?? '—' }}
               } @else {
@@ -111,7 +113,7 @@ import {
           </ng-container>
           <ng-container matColumnDef="type">
             <th mat-header-cell *matHeaderCellDef>Type</th>
-            <td mat-cell *matCellDef="let t">
+            <td mat-cell *matCellDef="let t" class="cell-type">
               <span class="badge badge-{{ t.direction }}">{{ t.direction }}</span>
             </td>
           </ng-container>
@@ -283,6 +285,99 @@ import {
       .amount-income { color: var(--accent-ink); }
 
       .empty { text-align: center; opacity: 0.6; padding: 32px; }
+
+      /* ---- Phone: each row becomes a transaction card ---------------
+         Four-column grid so the three meta cells (date / category /
+         account) share one line without needing a wrapper element —
+         mat-table renders cells as direct children of the row, so
+         grid-template-areas is the only way to regroup them. */
+      @media (max-width: 700px) {
+        .toolbar {
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .search-box {
+          flex: 1 1 100%;
+          max-width: none;
+        }
+        .filter-group {
+          flex: 1 1 auto;
+        }
+        .filter-pill {
+          flex: 1;
+          padding: 10px 12px;
+          font-size: 0.85rem;
+        }
+        .btn-add.mat-mdc-unelevated-button {
+          flex: 0 0 auto;
+          min-height: 44px;
+        }
+
+        .stacked-table tr.mat-mdc-row {
+          display: grid;
+          grid-template-columns: auto auto 1fr auto;
+          grid-template-areas:
+            'desc desc desc   amount'
+            'date cat  acct   acct'
+            'type type .      actions';
+          align-items: center;
+          gap: 4px 8px;
+          padding: 12px 14px;
+        }
+
+        .description-cell {
+          grid-area: desc;
+          font-size: 0.98rem;
+          font-weight: 700;
+          color: var(--ink);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .amount-cell {
+          grid-area: amount;
+          justify-self: end;
+          font-size: 1rem;
+          white-space: nowrap;
+        }
+
+        .cell-date { grid-area: date; }
+        .cell-category { grid-area: cat; }
+        .cell-account {
+          grid-area: acct;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .cell-date,
+        .cell-category,
+        .cell-account {
+          font-size: 0.78rem !important;
+          color: var(--ink-faint);
+        }
+        /* Middot separators between the meta cells. */
+        .cell-date::after,
+        .cell-category::after {
+          content: '·';
+          margin-left: 8px;
+          opacity: 0.6;
+        }
+
+        .cell-type { grid-area: type; }
+        .actions-cell {
+          grid-area: actions;
+          justify-self: end;
+          display: flex;
+          gap: 2px;
+        }
+        .actions-cell button.mat-mdc-icon-button {
+          width: 40px;
+          height: 40px;
+          padding: 8px;
+
+          mat-icon { font-size: 20px; width: 20px; height: 20px; }
+        }
+      }
     `,
   ],
 })

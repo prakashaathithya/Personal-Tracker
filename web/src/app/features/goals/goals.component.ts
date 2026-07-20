@@ -126,7 +126,7 @@ interface GoalView extends SavingsGoal {
       .action-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
       .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-      .goal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+      .goal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; }
       .goal-top { display: flex; align-items: center; }
       .goal-name { font-weight: 700; font-size: 1.05rem; }
       .goal-amounts { margin: 6px 0 10px; }
@@ -148,6 +148,20 @@ interface GoalView extends SavingsGoal {
         background: var(--field-bg); color: inherit; font-family: inherit;
       }
       .empty { color: var(--mat-sys-on-surface-variant); }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .goal-grid { grid-template-columns: 1fr; gap: 12px; }
+        .add-row > * { flex: 1 1 100% !important; width: 100%; }
+        .plain-input.amt { width: 100%; }
+        .plain-input, .action-btn { height: 48px; }
+        .plain-input { font-size: 16px; }
+        .goal-amounts .cur { font-size: 1.25rem; }
+        /* The inline "add to goal" input sits next to a button — keep it
+           roomy enough to tap but let it share the row. */
+        .mini-input { flex: 1 1 auto; width: auto; height: 40px; font-size: 16px; }
+        .goal-foot { flex-wrap: wrap; }
+      }
     `,
   ],
 })

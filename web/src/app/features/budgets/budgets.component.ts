@@ -220,7 +220,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
 
       .stat-cards {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
         gap: 16px;
         margin-bottom: 20px;
       }
@@ -279,7 +279,7 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         color: var(--mat-sys-on-surface-variant);
       }
 
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 16px; }
 
       .card-head { display: flex; align-items: flex-start; margin-bottom: 16px; }
       .card-title { font-weight: 700; font-size: 1.05rem; }
@@ -415,6 +415,28 @@ import { BudgetItem, MonthlyBudget } from '../../core/models';
         margin-top: 4px;
         font-weight: 600;
         border-top: 1px solid var(--hairline);
+      }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .grid, .stat-cards { gap: 12px; }
+
+        .card-head { flex-wrap: wrap; gap: 8px; }
+        .card-total { text-align: left; }
+        .card-total-value { font-size: 1.1rem; }
+
+        .add-box { padding: 14px; }
+        /* Name / amount / Add stack instead of squeezing onto one line. */
+        .add-row > .plain-input { flex: 1 1 100%; }
+        .plain-input-wrap.amount { width: 100%; flex: 1 1 100%; }
+        .add-row .action-btn { width: 100%; }
+        .plain-input { height: 48px; font-size: 16px; }
+        .action-btn { height: 48px; }
+
+        /* These tables are only 2–3 narrow columns, so they still fit —
+           just trim the padding rather than stacking them. */
+        .mat-mdc-cell, .mat-mdc-header-cell { padding: 10px 8px; }
+        .table-total { padding: 12px 8px; }
       }
     `,
   ],

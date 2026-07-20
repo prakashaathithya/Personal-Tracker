@@ -158,6 +158,23 @@ import {
       .rec-amt { font-family: 'Inter', sans-serif; font-weight: 700; }
       .rec-amt.income { color: var(--accent-ink); }
       .empty { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        /* The add form has ~7 controls; on a phone give each its own row
+           rather than letting flex-wrap scatter them unpredictably. */
+        .add-grid > * { flex: 1 1 100% !important; width: 100%; }
+        .add-grid .plain-input.tiny,
+        .add-grid .plain-input.amt { width: 100%; }
+        .add-grid .inline-field { justify-content: space-between; }
+        .plain-input, .action-btn { height: 48px; }
+        .plain-input { font-size: 16px; }
+
+        /* Rows wrap: description+amount on top, controls beneath. */
+        .rec-row { flex-wrap: wrap; gap: 8px; }
+        .rec-main { flex: 1 1 60%; min-width: 0; }
+        .rec-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      }
     `,
   ],
 })

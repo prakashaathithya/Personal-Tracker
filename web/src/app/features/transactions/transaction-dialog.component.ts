@@ -445,6 +445,48 @@ export interface TxnDialogData {
         box-shadow: none;
         cursor: not-allowed;
       }
+
+      /* ---- Phone: the dialog is a bottom sheet (see styles.scss) ----
+         Tighten the gutters, and make the footer a full-width action bar
+         that sits above the gesture area. */
+      @media (max-width: 700px) {
+        .dialog {
+          /* dvh so the sheet doesn't extend under a collapsing URL bar */
+          max-height: 92dvh;
+        }
+
+        .dialog-head {
+          padding: 18px 18px 14px;
+        }
+        .dialog-head h2 { font-size: 1.25rem; }
+        .subtitle { font-size: 0.85rem; }
+
+        .dialog-body {
+          padding: 4px 18px 8px;
+        }
+
+        .form { gap: 14px; }
+
+        .dialog-foot {
+          padding: 14px 18px;
+          gap: 8px;
+        }
+        /* Save gets the wider half and sits on the right, where the
+           thumb naturally rests. */
+        .btn-text { flex: 0 0 auto; min-height: 48px; }
+        .btn-save { flex: 1; min-height: 48px; }
+
+        .control,
+        .plan-btn,
+        .select-control.mat-mdc-select { min-height: 48px; }
+        .control { font-size: 16px; }
+        .seg { padding: 12px 6px; font-size: 0.9rem; }
+      }
+
+      /* Two-up date/amount rows stop fitting once the sheet is this narrow. */
+      @media (max-width: 380px) {
+        .field-row { grid-template-columns: 1fr; gap: 14px; }
+      }
     `,
   ],
 })

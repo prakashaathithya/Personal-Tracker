@@ -275,6 +275,23 @@ const PAYMENT_ICONS: Record<string, string> = {
       .pill-wants { color: light-dark(#92400e, #fcd34d); background: light-dark(#fef3c7, rgba(217,119,6,0.18)); }
       .pill-saving { color: light-dark(#047857, #6ee7b7); background: light-dark(#d1fae5, rgba(16,185,129,0.18)); }
       .pill-others { color: light-dark(#6b7280, #cbd5e1); background: light-dark(#e5e7eb, rgba(148,163,184,0.18)); }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        /* Name / need-class / Add wrap onto their own lines. */
+        .add-row { flex-wrap: wrap; }
+        .grow { flex: 1 1 100%; }
+        .select-wrap { flex: 1 1 auto; }
+        .add-btn { flex: 0 0 auto; }
+        .field, .select-field, .search-field { font-size: 16px; }
+
+        /* The inner scroll region fights the page scroll on touch; let the
+           page own the scrolling and the list grow instead. */
+        .scroll-list { max-height: none; overflow-y: visible; }
+
+        .row-item { gap: 10px; }
+        .row-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+      }
     `,
   ],
 })

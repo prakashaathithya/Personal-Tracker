@@ -364,7 +364,7 @@ const RED = '#ef6a5f';
       .value.neg { color: var(--danger); }
       .charts {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
         gap: 16px;
       }
       .charts .wide { grid-column: 1 / -1; }
@@ -372,7 +372,7 @@ const RED = '#ef6a5f';
 
       .tables {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 16px;
         margin-top: 16px;
       }
@@ -445,6 +445,43 @@ const RED = '#ef6a5f';
         background: var(--accent);
       }
       .share-text { min-width: 44px; }
+
+      /* ---- Phone ----
+         The report and pivot grids stay real tables — they're genuinely
+         two-dimensional data — and scroll sideways inside their card,
+         with the first column pinned. Everything around them tightens. */
+      @media (max-width: 700px) {
+        .filters {
+          width: 100%;
+          gap: 8px;
+        }
+        .filters .picker { width: auto; flex: 1 1 110px; }
+
+        .value { font-size: 1.15rem; margin-top: 4px; }
+        .label { font-size: 0.72rem; }
+        .sub { font-size: 0.68rem; }
+
+        .charts, .tables { gap: 12px; }
+
+        /* Give the sideways scroll the full card width instead of
+           stopping short at the card's content padding. */
+        .scroll-x {
+          margin-inline: -16px;
+          padding-inline: 16px;
+        }
+
+        table.grid { font-size: 0.78rem; }
+        table.grid th,
+        table.grid td { padding: 7px 9px; }
+        .share-bar { max-width: 36px; }
+        .share-text { min-width: 36px; }
+
+        /* Sticky column needs an opaque-enough backdrop to hide the
+           cells sliding under it. */
+        table.pivot .sticky-col {
+          background: light-dark(rgba(248, 250, 253, 0.96), rgba(22, 28, 36, 0.96));
+        }
+      }
     `,
   ],
 })

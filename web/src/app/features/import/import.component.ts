@@ -209,6 +209,9 @@ interface PreviewRow extends ImportRow {
               </div>
             </div>
 
+            <!-- Wide preview grid: scrolls sideways on a phone rather than
+                 stacking, so rows stay comparable while ticking them off. -->
+            <div class="scroll-x">
             <table mat-table [dataSource]="filteredRows()" class="full-width">
               <ng-container matColumnDef="select">
                 <th mat-header-cell *matHeaderCellDef>
@@ -272,6 +275,7 @@ interface PreviewRow extends ImportRow {
               <tr mat-header-row *matHeaderRowDef="columns"></tr>
               <tr mat-row *matRowDef="let row; columns: columns" [class.row-review]="row.reviewReason"></tr>
             </table>
+            </div>
 
             @if (!filteredRows().length) {
               <p class="empty">No rows match your filters.</p>
@@ -766,6 +770,42 @@ interface PreviewRow extends ImportRow {
             0 2px 6px rgba(16, 185, 129, 0.3);
         }
         &:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+      }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .summary-grid { grid-template-columns: 1fr; }
+        .source-body { flex-direction: column; }
+        .search-box { flex: 1 1 100%; max-width: none; }
+        .toolbar { gap: 10px; }
+
+        /* Let the preview grid scroll edge-to-edge inside its card. */
+        .scroll-x {
+          margin-inline: -16px;
+          padding-inline: 16px;
+        }
+        .scroll-x .mat-mdc-cell,
+        .scroll-x .mat-mdc-header-cell {
+          padding: 10px;
+          white-space: nowrap;
+        }
+        .scroll-x .description-cell {
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Sticky action bar clears the bottom tab bar and stacks its
+           buttons so both stay tappable. */
+        .import-bar {
+          bottom: calc(var(--bottom-nav-h) + 8px);
+          flex-wrap: wrap;
+          gap: 10px;
+          padding: 12px 14px;
+        }
+        .import-summary { flex: 1 1 100%; font-size: 0.85rem; }
+        .import-bar .btn-secondary,
+        .import-bar .btn-primary { flex: 1 1 0; height: 46px; }
       }
     `,
   ],

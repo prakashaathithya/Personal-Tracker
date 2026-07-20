@@ -185,6 +185,10 @@ import { Loan, LoanScheduleRow } from '../../core/models';
                   </div>
                 </div>
 
+                <!-- Six money columns per period: genuinely tabular, so on a
+                     phone this scrolls sideways rather than stacking into
+                     dozens of tall cards. -->
+                <div class="scroll-x">
                 <table mat-table [dataSource]="schedule()" class="full-width">
                   <ng-container matColumnDef="status">
                     <th mat-header-cell *matHeaderCellDef>#</th>
@@ -225,6 +229,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
                     [class.row-due]="nextDue()?.id === row.id"
                   ></tr>
                 </table>
+                </div>
               </mat-card-content>
             </mat-card>
           }
@@ -443,7 +448,7 @@ import { Loan, LoanScheduleRow } from '../../core/models';
       /* ---- Mini stat cards ---- */
       .mini-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
         gap: 16px;
         margin-bottom: 16px;
       }
@@ -517,6 +522,36 @@ import { Loan, LoanScheduleRow } from '../../core/models';
 
       .mat-mdc-header-cell { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; }
       tr.row-due { background: color-mix(in srgb, #f59e0b 10%, transparent); }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .grid, .mini-stats { gap: 12px; }
+
+        .summary-panel { padding: 18px; }
+        .summary-top { flex-direction: column; gap: 12px; }
+        .summary-percent { font-size: 2rem; }
+        .summary-stats { gap: 24px; }
+        .summary-stat-value { font-size: 1.1rem; }
+
+        .detail-head { gap: 10px; }
+        .detail-title { font-size: 1.05rem; }
+        .mini-stat-value { font-size: 1.15rem; }
+
+        .field-row { flex-direction: column; gap: 0; }
+        .plain-input { height: 48px; font-size: 16px; }
+        .action-btn { height: 48px; }
+
+        /* Let the schedule use the card's full width for its sideways scroll. */
+        .scroll-x {
+          margin-inline: -16px;
+          padding-inline: 16px;
+        }
+        .scroll-x .mat-mdc-cell,
+        .scroll-x .mat-mdc-header-cell {
+          padding: 10px 10px;
+          white-space: nowrap;
+        }
+      }
     `,
   ],
 })

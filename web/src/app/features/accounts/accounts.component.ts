@@ -100,7 +100,7 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
 
       .account-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
         gap: 16px;
         margin-bottom: 20px;
       }
@@ -153,6 +153,19 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
       }
       .action-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
       .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      /* ---- Phone: one account card per row, add-form fields stack ---- */
+      @media (max-width: 700px) {
+        .account-grid { grid-template-columns: 1fr; gap: 12px; }
+        .networth-value { font-size: 1.35rem; }
+        .acc-balance { font-size: 1.25rem; }
+
+        .add-row > * { flex: 1 1 100% !important; width: 100%; }
+        .plain-input-wrap.amount { width: 100%; }
+        .type-select { width: 100%; min-width: 0; }
+        .plain-input, .type-select, .action-btn { height: 48px; }
+        .plain-input { font-size: 16px; }
+      }
     `,
   ],
 })

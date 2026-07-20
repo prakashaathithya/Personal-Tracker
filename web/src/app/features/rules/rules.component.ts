@@ -121,6 +121,19 @@ import { CategorizationRule, Category, MatchType } from '../../core/models';
         background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container);
       }
       .empty { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
+
+      /* ---- Phone ---- */
+      @media (max-width: 700px) {
+        .plain-input.match,
+        .plain-input.pattern,
+        .plain-input.cat { flex: 1 1 100%; }
+        .arrow { display: none; }
+        .plain-input, .action-btn { height: 48px; font-size: 16px; }
+        .action-btn { width: 100%; font-size: 0.9rem; }
+
+        .rule-row { flex-wrap: wrap; gap: 8px; }
+        .pattern { flex: 1 1 100%; order: -1; }
+      }
     `,
   ],
 })
