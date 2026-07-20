@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { IsDateString, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AuthGuard } from '../auth/auth.guard';
@@ -13,7 +13,11 @@ interface TxnRow {
   direction: Direction;
   txn_date: string;
   category: { name: string; need_class: string } | null;
+  payment_type: { name: string } | null;
 }
+
+/** Dimension a pivot matrix can be broken down by. */
+type MatrixDim = 'category' | 'payment_type' | 'need_class';
 
 export class RangeQuery {
   @IsOptional() @IsDateString() from?: string;
@@ -23,6 +27,11 @@ export class RangeQuery {
 export class YearQuery {
   @IsOptional() @Type(() => Number) @IsInt() @Min(2000) @Max(2100)
   year?: number;
+}
+
+export class MatrixQuery extends YearQuery {
+  @IsOptional() @IsIn(['category', 'payment_type', 'need_class'])
+  dim?: MatrixDim;
 }
 
 @UseGuards(AuthGuard)
@@ -36,7 +45,7 @@ export class ReportsController {
     let q = db
       .from('transactions')
       .select(
-        'amount, planned, direction, txn_date, category:categories(name,need_class)',
+        'amount, planned, direction, txn_date, category:categories(name,need_class), payment_type:payment_types(name)',
       );
     if (from) q = q.gte('txn_date', from);
     if (to) q = q.lte('txn_date', to);
@@ -87,17 +96,100 @@ export class ReportsController {
     const rows = await this.rows(db, q.from, q.to);
     const map = new Map<
       string,
-      { category: string; total: number; count: number }
+      {
+        category: string;
+        need_class: string;
+        total: number;
+        count: number;
+        planned: number;
+        unplanned: number;
+      }
     >();
     for (const r of rows) {
       if (r.direction !== 'expense') continue;
       const name = r.category?.name ?? 'Uncategorized';
-      const entry = map.get(name) ?? { category: name, total: 0, count: 0 };
+      const entry = map.get(name) ?? {
+        category: name,
+        need_class: r.category?.need_class ?? 'Others',
+        total: 0,
+        count: 0,
+        planned: 0,
+        unplanned: 0,
+      };
+      const amt = Number(r.amount);
+      entry.total += amt;
+      entry.count += 1;
+      if (r.planned) entry.planned += amt;
+      else entry.unplanned += amt;
+      map.set(name, entry);
+    }
+    return [...map.values()].sort((a, b) => b.total - a.total);
+  }
+
+  /** Expense grouped by payment type (Cash / UPI / Credit Card / EMI / …). */
+  @Get('by-payment-type')
+  async byPaymentType(@Db() db: SupabaseClient, @Query() q: RangeQuery) {
+    const rows = await this.rows(db, q.from, q.to);
+    const map = new Map<
+      string,
+      { payment_type: string; total: number; count: number }
+    >();
+    for (const r of rows) {
+      if (r.direction !== 'expense') continue;
+      const name = r.payment_type?.name ?? 'Unspecified';
+      const entry = map.get(name) ?? { payment_type: name, total: 0, count: 0 };
       entry.total += Number(r.amount);
       entry.count += 1;
       map.set(name, entry);
     }
     return [...map.values()].sort((a, b) => b.total - a.total);
+  }
+
+  /**
+   * Month-by-dimension pivot for a year, mirroring the spreadsheet's
+   * "Month x Type" and "Month x Payment Type" pivot tables. Columns are
+   * ordered by descending yearly total so the biggest spend leads.
+   */
+  @Get('matrix')
+  async matrix(@Db() db: SupabaseClient, @Query() q: MatrixQuery) {
+    const year = q.year ?? new Date().getFullYear();
+    const dim: MatrixDim = q.dim ?? 'category';
+    const rows = await this.rows(db, `${year}-01-01`, `${year}-12-31`);
+
+    const keyOf = (r: TxnRow) => {
+      if (dim === 'payment_type') return r.payment_type?.name ?? 'Unspecified';
+      if (dim === 'need_class') return r.category?.need_class ?? 'Others';
+      return r.category?.name ?? 'Uncategorized';
+    };
+
+    // key -> 12 monthly totals
+    const cells = new Map<string, number[]>();
+    for (const r of rows) {
+      if (r.direction !== 'expense') continue;
+      const m = Number(r.txn_date.slice(5, 7)) - 1;
+      if (m < 0 || m > 11) continue;
+      const key = keyOf(r);
+      const months = cells.get(key) ?? new Array<number>(12).fill(0);
+      months[m] += Number(r.amount);
+      cells.set(key, months);
+    }
+
+    const columns = [...cells.keys()].sort(
+      (a, b) => sum(cells.get(b)!) - sum(cells.get(a)!),
+    );
+    const matrix = Array.from({ length: 12 }, (_, m) => {
+      const values = columns.map((c) => cells.get(c)![m]);
+      return { month: m + 1, values, total: sum(values) };
+    });
+
+    return {
+      year,
+      dim,
+      columns,
+      rows: matrix,
+      columnTotals: columns.map((c) => sum(cells.get(c)!)),
+      grandTotal: sum(matrix.map((r) => r.total)),
+    };
   }
 
   /** Needs / Wants / Saving / Others split of expenses. */
@@ -145,4 +237,8 @@ export class ReportsController {
       balance: incomeByMonth[i] - expenseByMonth[i],
     }));
   }
+}
+
+function sum(values: number[]): number {
+  return values.reduce((a, b) => a + b, 0);
 }

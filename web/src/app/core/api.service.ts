@@ -20,6 +20,8 @@ import {
   NetWorthPoint,
   Paged,
   PaymentType,
+  PaymentTypeTotal,
+  ReportMatrix,
   SavingsGoal,
   Summary,
   Transaction,
@@ -170,6 +172,16 @@ export class ApiService {
   byNeedClass(from?: string, to?: string): Observable<NeedClassTotal[]> {
     return this.http.get<NeedClassTotal[]>(`${this.base}/reports/by-need-class`, {
       params: this.params({ from, to }),
+    });
+  }
+  byPaymentType(from?: string, to?: string): Observable<PaymentTypeTotal[]> {
+    return this.http.get<PaymentTypeTotal[]>(`${this.base}/reports/by-payment-type`, {
+      params: this.params({ from, to }),
+    });
+  }
+  matrix(year: number, dim: ReportMatrix['dim']): Observable<ReportMatrix> {
+    return this.http.get<ReportMatrix>(`${this.base}/reports/matrix`, {
+      params: this.params({ year, dim }),
     });
   }
   monthly(year?: number): Observable<MonthlyReportRow[]> {

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -13,6 +13,8 @@ import {
   MonthlyReportRow,
   NeedClassTotal,
   NetWorthPoint,
+  PaymentTypeTotal,
+  ReportMatrix,
   Summary,
 } from '../../core/models';
 import { ChartComponent } from '../../shared/chart.component';
@@ -30,6 +32,8 @@ const RED = '#ef6a5f';
   selector: 'app-dashboard',
   imports: [
     CurrencyPipe,
+    DecimalPipe,
+    PercentPipe,
     MatCardModule,
     MatProgressBarModule,
     MatButtonToggleModule,
@@ -97,6 +101,21 @@ const RED = '#ef6a5f';
             <div class="value" [class.pos]="summary().net >= 0" [class.neg]="summary().net < 0">
               {{ summary().net | currency: 'INR' : 'symbol' : '1.0-0' }}
             </div>
+            <div class="sub">{{ savingsRate() | percent: '1.0-1' }} of income</div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-content>
+            <div class="label">Planned</div>
+            <div class="value">{{ summary().planned | currency: 'INR' : 'symbol' : '1.0-0' }}</div>
+            <div class="sub">{{ plannedShare() | percent: '1.0-1' }} of spend</div>
+          </mat-card-content>
+        </mat-card>
+        <mat-card>
+          <mat-card-content>
+            <div class="label">Un-planned</div>
+            <div class="value neg">{{ summary().unplanned | currency: 'INR' : 'symbol' : '1.0-0' }}</div>
+            <div class="sub">{{ summary().count }} transactions</div>
           </mat-card-content>
         </mat-card>
       </div>
@@ -133,6 +152,193 @@ const RED = '#ef6a5f';
           </mat-card-content>
         </mat-card>
       </div>
+
+      <div class="tables">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Spend by category</mat-card-title>
+            <span class="hint">{{ rangeLabel() }}</span>
+          </mat-card-header>
+          <mat-card-content class="scroll-x">
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Class</th>
+                  <th class="num">Txns</th>
+                  <th class="num">Planned</th>
+                  <th class="num">Un-planned</th>
+                  <th class="num">Total</th>
+                  <th class="num">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of byCategory(); track c.category) {
+                  <tr>
+                    <td>{{ c.category }}</td>
+                    <td><span class="badge">{{ c.need_class }}</span></td>
+                    <td class="num">{{ c.count }}</td>
+                    <td class="num">{{ c.planned | number: '1.0-0' }}</td>
+                    <td class="num">{{ c.unplanned | number: '1.0-0' }}</td>
+                    <td class="num strong">{{ c.total | number: '1.0-0' }}</td>
+                    <td class="num">
+                      <span class="share">
+                        <span class="share-bar" [style.width.%]="pct(c.total, summary().expense)"></span>
+                        <span class="share-text">{{ pct(c.total, summary().expense) | number: '1.0-1' }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="7" class="empty">No spend in this period.</td></tr>
+                }
+              </tbody>
+              @if (byCategory().length) {
+                <tfoot>
+                  <tr>
+                    <td colspan="2">Total</td>
+                    <td class="num">{{ summary().count }}</td>
+                    <td class="num">{{ summary().planned | number: '1.0-0' }}</td>
+                    <td class="num">{{ summary().unplanned | number: '1.0-0' }}</td>
+                    <td class="num strong">{{ summary().expense | number: '1.0-0' }}</td>
+                    <td class="num">100%</td>
+                  </tr>
+                </tfoot>
+              }
+            </table>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Spend by payment type</mat-card-title>
+            <span class="hint">{{ rangeLabel() }}</span>
+          </mat-card-header>
+          <mat-card-content class="scroll-x">
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Payment type</th>
+                  <th class="num">Txns</th>
+                  <th class="num">Total</th>
+                  <th class="num">Share</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of byPaymentType(); track p.payment_type) {
+                  <tr>
+                    <td>{{ p.payment_type }}</td>
+                    <td class="num">{{ p.count }}</td>
+                    <td class="num strong">{{ p.total | number: '1.0-0' }}</td>
+                    <td class="num">
+                      <span class="share">
+                        <span class="share-bar" [style.width.%]="pct(p.total, summary().expense)"></span>
+                        <span class="share-text">{{ pct(p.total, summary().expense) | number: '1.0-1' }}%</span>
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="empty">No spend in this period.</td></tr>
+                }
+              </tbody>
+            </table>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="wide">
+          <mat-card-header>
+            <mat-card-title>Monthly summary ({{ selectedYear() }})</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="scroll-x">
+            <table class="grid">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th class="num">Salary</th>
+                  <th class="num">Usage</th>
+                  <th class="num">Balance</th>
+                  <th class="num">Saved %</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of monthlyRows(); track r.month) {
+                  <tr [class.dim]="!r.salary && !r.usage">
+                    <td>{{ months[r.month - 1].label }}</td>
+                    <td class="num">{{ r.salary | number: '1.0-0' }}</td>
+                    <td class="num">{{ r.usage | number: '1.0-0' }}</td>
+                    <td class="num strong" [class.neg]="r.balance < 0">{{ r.balance | number: '1.0-0' }}</td>
+                    <td class="num">{{ pct(r.balance, r.salary) | number: '1.0-1' }}%</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total</td>
+                  <td class="num">{{ yearTotals().salary | number: '1.0-0' }}</td>
+                  <td class="num">{{ yearTotals().usage | number: '1.0-0' }}</td>
+                  <td class="num strong" [class.neg]="yearTotals().balance < 0">
+                    {{ yearTotals().balance | number: '1.0-0' }}
+                  </td>
+                  <td class="num">
+                    {{ pct(yearTotals().balance, yearTotals().salary) | number: '1.0-1' }}%
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="wide">
+          <mat-card-header>
+            <mat-card-title>Month-wise breakdown ({{ selectedYear() }})</mat-card-title>
+            <span class="spacer"></span>
+            <mat-button-toggle-group
+              [value]="matrixDim()"
+              (change)="setMatrixDim($event.value)"
+              hideSingleSelectionIndicator
+            >
+              <mat-button-toggle value="category">Category</mat-button-toggle>
+              <mat-button-toggle value="payment_type">Payment type</mat-button-toggle>
+              <mat-button-toggle value="need_class">Needs/Wants</mat-button-toggle>
+            </mat-button-toggle-group>
+          </mat-card-header>
+          <mat-card-content class="scroll-x">
+            <table class="grid pivot">
+              <thead>
+                <tr>
+                  <th class="sticky-col">Month</th>
+                  @for (c of matrix().columns; track c) {
+                    <th class="num">{{ c }}</th>
+                  }
+                  <th class="num">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of matrix().rows; track r.month) {
+                  <tr [class.dim]="!r.total">
+                    <td class="sticky-col">{{ months[r.month - 1].label.slice(0, 3) }}</td>
+                    @for (v of r.values; track $index) {
+                      <td class="num" [class.zero]="!v">{{ v ? (v | number: '1.0-0') : '—' }}</td>
+                    }
+                    <td class="num strong">{{ r.total | number: '1.0-0' }}</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td class="sticky-col">Total</td>
+                  @for (t of matrix().columnTotals; track $index) {
+                    <td class="num">{{ t | number: '1.0-0' }}</td>
+                  }
+                  <td class="num strong">{{ matrix().grandTotal | number: '1.0-0' }}</td>
+                </tr>
+              </tfoot>
+            </table>
+            @if (!matrix().columns.length) {
+              <p class="empty">No spend recorded for {{ selectedYear() }}.</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
     </div>
   `,
   styles: [
@@ -162,6 +368,83 @@ const RED = '#ef6a5f';
         gap: 16px;
       }
       .charts .wide { grid-column: 1 / -1; }
+      .sub { font-size: 0.75rem; color: var(--ink-faint); margin-top: 4px; }
+
+      .tables {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .tables .wide { grid-column: 1 / -1; }
+      .tables .hint { font-size: 0.75rem; color: var(--ink-faint); margin-left: 10px; }
+      .tables mat-card-header { align-items: center; }
+      .scroll-x { overflow-x: auto; }
+
+      table.grid {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        font-variant-numeric: tabular-nums;
+      }
+      table.grid th,
+      table.grid td {
+        padding: 8px 12px;
+        text-align: left;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--hairline);
+      }
+      table.grid thead th {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+      }
+      table.grid tbody td { color: var(--ink-soft); }
+      table.grid tbody tr:hover { background: var(--hover-bg); }
+      table.grid tfoot td {
+        font-weight: 700;
+        color: var(--ink);
+        border-top: 1px solid var(--glass-border);
+        border-bottom: none;
+      }
+      table.grid .num { text-align: right; }
+      table.grid .strong { color: var(--ink); font-weight: 600; }
+      table.grid .neg { color: var(--danger); }
+      table.grid .zero { color: var(--ink-faint); }
+      table.grid tr.dim td { opacity: 0.45; }
+      table.grid .empty { text-align: center; color: var(--ink-faint); padding: 20px; }
+
+      /* Pivot: keep the month column visible while scrolling sideways */
+      table.pivot .sticky-col {
+        position: sticky;
+        left: 0;
+        background: var(--glass-bg-strong);
+        backdrop-filter: blur(8px);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: var(--surface-2);
+        border: 1px solid var(--hairline);
+        color: var(--ink-soft);
+      }
+
+      .share { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; }
+      .share-bar {
+        display: block;
+        height: 6px;
+        min-width: 2px;
+        max-width: 70px;
+        border-radius: 3px;
+        background: var(--accent);
+      }
+      .share-text { min-width: 44px; }
     `,
   ],
 })
@@ -182,8 +465,11 @@ export class DashboardComponent {
   });
   readonly byCategory = signal<CategoryTotal[]>([]);
   readonly byNeedClass = signal<NeedClassTotal[]>([]);
+  readonly byPaymentType = signal<PaymentTypeTotal[]>([]);
   readonly monthlyRows = signal<MonthlyReportRow[]>([]);
   readonly netWorthSeries = signal<NetWorthPoint[]>([]);
+  readonly matrixDim = signal<ReportMatrix['dim']>('category');
+  readonly matrix = signal<ReportMatrix>(emptyMatrix());
 
   private readonly currentYear = new Date().getFullYear();
   readonly selectedYear = signal(this.currentYear);
@@ -214,6 +500,45 @@ export class DashboardComponent {
     this.load();
   }
 
+  setMatrixDim(value: ReportMatrix['dim']) {
+    this.matrixDim.set(value);
+    this.api.matrix(this.selectedYear(), value).subscribe({
+      next: (m) => this.matrix.set(m),
+    });
+  }
+
+  /** Percentage of `value` within `total`, guarding a zero denominator. */
+  pct(value: number, total: number): number {
+    return total ? (value / total) * 100 : 0;
+  }
+
+  readonly rangeLabel = computed(() =>
+    this.range() === 'year'
+      ? String(this.selectedYear())
+      : `${this.months[this.selectedMonth()].label} ${this.selectedYear()}`,
+  );
+
+  readonly savingsRate = computed(() => {
+    const s = this.summary();
+    return s.income ? s.net / s.income : 0;
+  });
+
+  readonly plannedShare = computed(() => {
+    const s = this.summary();
+    return s.expense ? s.planned / s.expense : 0;
+  });
+
+  readonly yearTotals = computed(() =>
+    this.monthlyRows().reduce(
+      (acc, r) => ({
+        salary: acc.salary + r.salary,
+        usage: acc.usage + r.usage,
+        balance: acc.balance + r.balance,
+      }),
+      { salary: 0, usage: 0, balance: 0 },
+    ),
+  );
+
   private bounds(): { from: string; to: string } {
     const year = this.selectedYear();
     if (this.range() === 'year') {
@@ -232,7 +557,9 @@ export class DashboardComponent {
       summary: this.api.summary(from, to),
       byCategory: this.api.byCategory(from, to),
       byNeedClass: this.api.byNeedClass(from, to),
+      byPaymentType: this.api.byPaymentType(from, to),
       monthly: this.api.monthly(this.selectedYear()),
+      matrix: this.api.matrix(this.selectedYear(), this.matrixDim()),
       balances: this.api.accountBalances(),
       trend: this.api.netWorthTrend(),
     }).subscribe({
@@ -240,7 +567,9 @@ export class DashboardComponent {
         this.summary.set(r.summary);
         this.byCategory.set(r.byCategory);
         this.byNeedClass.set(r.byNeedClass);
+        this.byPaymentType.set(r.byPaymentType);
         this.monthlyRows.set(r.monthly);
+        this.matrix.set(r.matrix);
         this.netWorth.set(r.balances.net_worth);
         this.netWorthSeries.set(r.trend);
         this.loading.set(false);
@@ -335,6 +664,17 @@ export class DashboardComponent {
       options: { responsive: true, maintainAspectRatio: false },
     };
   });
+}
+
+function emptyMatrix(): ReportMatrix {
+  return {
+    year: new Date().getFullYear(),
+    dim: 'category',
+    columns: [],
+    rows: [],
+    columnTotals: [],
+    grandTotal: 0,
+  };
 }
 
 function iso(d: Date): string {

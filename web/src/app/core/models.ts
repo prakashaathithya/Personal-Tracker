@@ -157,8 +157,34 @@ export interface Summary {
 
 export interface CategoryTotal {
   category: string;
+  need_class: NeedClass;
   total: number;
   count: number;
+  planned: number;
+  unplanned: number;
+}
+
+export interface PaymentTypeTotal {
+  payment_type: string;
+  total: number;
+  count: number;
+}
+
+export interface MatrixRow {
+  /** 1-12 */
+  month: number;
+  /** Aligned to `ReportMatrix.columns`. */
+  values: number[];
+  total: number;
+}
+
+export interface ReportMatrix {
+  year: number;
+  dim: 'category' | 'payment_type' | 'need_class';
+  columns: string[];
+  rows: MatrixRow[];
+  columnTotals: number[];
+  grandTotal: number;
 }
 
 export interface NeedClassTotal {
