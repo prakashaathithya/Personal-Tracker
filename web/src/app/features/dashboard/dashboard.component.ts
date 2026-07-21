@@ -372,7 +372,7 @@ const RED = '#ef6a5f';
 
       .tables {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
         margin-top: 16px;
       }
@@ -462,6 +462,7 @@ const RED = '#ef6a5f';
         .sub { font-size: 0.68rem; }
 
         .charts, .tables { gap: 12px; }
+        .tables { grid-template-columns: 1fr; }
 
         /* Give the sideways scroll the full card width instead of
            stopping short at the card's content padding. */
