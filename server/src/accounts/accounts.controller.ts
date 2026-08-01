@@ -125,15 +125,16 @@ export class AccountsController {
       0,
     );
 
-    const txns = await handle<{ txn_date: string; amount: number; direction: string }[]>(
-      db.from('transactions').select('txn_date, amount, direction'),
-    );
+    const txns = await handle<
+      { txn_date: string; amount: number; direction: string }[]
+    >(db.from('transactions').select('txn_date, amount, direction'));
 
     const deltaByMonth = new Map<string, number>();
     for (const t of txns ?? []) {
       if (t.direction === 'transfer') continue;
       const month = t.txn_date.slice(0, 7);
-      const delta = t.direction === 'income' ? Number(t.amount) : -Number(t.amount);
+      const delta =
+        t.direction === 'income' ? Number(t.amount) : -Number(t.amount);
       deltaByMonth.set(month, (deltaByMonth.get(month) ?? 0) + delta);
     }
 

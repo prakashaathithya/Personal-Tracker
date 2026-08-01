@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  server:
+    name: Server (lint, build, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package.json
+            server/package.json
+      # No package-lock.json is committed (a Windows-generated lockfile
+      # breaks Vercel's Linux install), so `npm ci` isn't available here.
+      - run: npm install
+      - run: npm run lint:api
+      - run: npm run build:api
+      - run: npm run test:api
+
+  web:
+    name: Web (build, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package.json
+            web/package.json
+      - run: npm install
+      - run: npm run build:web
+      - run: npm run test:web

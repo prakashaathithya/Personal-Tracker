@@ -17,10 +17,7 @@ import { RecurringController } from './recurring/recurring.controller';
 import { GoalsController } from './goals/goals.controller';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    SupabaseModule,
-  ],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), SupabaseModule],
   controllers: [
     AppController,
     AccountsController,

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { createClient, User } from '@supabase/supabase-js';
+
+type Client = ReturnType<typeof createClient>;
 
 /**
  * Centralizes access to Supabase.
@@ -15,7 +17,7 @@ import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 export class SupabaseService {
   private readonly url: string;
   private readonly anonKey: string;
-  private readonly authClient: SupabaseClient;
+  private readonly authClient: Client;
 
   constructor(config: ConfigService) {
     this.url = config.getOrThrow<string>('SUPABASE_URL');
@@ -33,7 +35,7 @@ export class SupabaseService {
     return data.user;
   }
 
-  clientForToken(token: string): SupabaseClient {
+  clientForToken(token: string): Client {
     return createClient(this.url, this.anonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false, autoRefreshToken: false },

@@ -116,8 +116,7 @@ export class RecurringController {
    */
   @Post('run')
   async run(@Db() db: SupabaseClient) {
-    const { data, error } = await db.rpc('run_due_recurring');
-    if (error) throw error;
-    return { generated: (data as number) ?? 0 };
+    const generated = await handle<number>(db.rpc('run_due_recurring'));
+    return { generated: generated ?? 0 };
   }
 }

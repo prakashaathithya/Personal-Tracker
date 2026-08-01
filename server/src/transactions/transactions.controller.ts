@@ -102,9 +102,7 @@ export class TransactionsController {
 
   @Get(':id')
   get(@Db() db: SupabaseClient, @Param('id') id: string) {
-    return handle(
-      db.from('transactions').select(EMBED).eq('id', id).single(),
-    );
+    return handle(db.from('transactions').select(EMBED).eq('id', id).single());
   }
 
   @Post()
@@ -129,12 +127,7 @@ export class TransactionsController {
     @Body() dto: UpdateTransactionDto,
   ) {
     return handle(
-      db
-        .from('transactions')
-        .update(dto)
-        .eq('id', id)
-        .select(EMBED)
-        .single(),
+      db.from('transactions').update(dto).eq('id', id).select(EMBED).single(),
     );
   }
 

@@ -72,12 +72,14 @@ export class MonthlyBudgetsController {
       );
     }
 
-    const [cat] = (await handle<{ id: string }[]>(
-      db.from('categories').select('id').eq('name', 'Salary').limit(1),
-    )) ?? [];
-    const [account] = (await handle<{ id: string }[]>(
-      db.from('accounts').select('id').order('created_at').limit(1),
-    )) ?? [];
+    const [cat] =
+      (await handle<{ id: string }[]>(
+        db.from('categories').select('id').eq('name', 'Salary').limit(1),
+      )) ?? [];
+    const [account] =
+      (await handle<{ id: string }[]>(
+        db.from('accounts').select('id').order('created_at').limit(1),
+      )) ?? [];
 
     return handle(
       db

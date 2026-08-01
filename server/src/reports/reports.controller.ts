@@ -1,5 +1,12 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { IsDateString, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsIn,
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AuthGuard } from '../auth/auth.guard';
@@ -25,12 +32,17 @@ export class RangeQuery {
 }
 
 export class YearQuery {
-  @IsOptional() @Type(() => Number) @IsInt() @Min(2000) @Max(2100)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(2000)
+  @Max(2100)
   year?: number;
 }
 
 export class MatrixQuery extends YearQuery {
-  @IsOptional() @IsIn(['category', 'payment_type', 'need_class'])
+  @IsOptional()
+  @IsIn(['category', 'payment_type', 'need_class'])
   dim?: MatrixDim;
 }
 
