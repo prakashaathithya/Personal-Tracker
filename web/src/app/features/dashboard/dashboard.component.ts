@@ -160,10 +160,10 @@ const RED = '#ef6a5f';
             <span class="hint">{{ rangeLabel() }}</span>
           </mat-card-header>
           <mat-card-content class="scroll-x">
-            <table class="grid">
+            <table class="grid pinned">
               <thead>
                 <tr>
-                  <th>Category</th>
+                  <th class="sticky-col">Category</th>
                   <th>Class</th>
                   <th class="num">Txns</th>
                   <th class="num">Planned</th>
@@ -175,7 +175,7 @@ const RED = '#ef6a5f';
               <tbody>
                 @for (c of byCategory(); track c.category) {
                   <tr>
-                    <td>{{ c.category }}</td>
+                    <td class="sticky-col">{{ c.category }}</td>
                     <td><span class="badge">{{ c.need_class }}</span></td>
                     <td class="num">{{ c.count }}</td>
                     <td class="num">{{ c.planned | number: '1.0-0' }}</td>
@@ -195,7 +195,8 @@ const RED = '#ef6a5f';
               @if (byCategory().length) {
                 <tfoot>
                   <tr>
-                    <td colspan="2">Total</td>
+                    <td class="sticky-col">Total</td>
+                    <td></td>
                     <td class="num">{{ summary().count }}</td>
                     <td class="num">{{ summary().planned | number: '1.0-0' }}</td>
                     <td class="num">{{ summary().unplanned | number: '1.0-0' }}</td>
@@ -302,7 +303,7 @@ const RED = '#ef6a5f';
             </mat-button-toggle-group>
           </mat-card-header>
           <mat-card-content class="scroll-x">
-            <table class="grid pivot">
+            <table class="grid pivot pinned">
               <thead>
                 <tr>
                   <th class="sticky-col">Month</th>
@@ -416,12 +417,32 @@ const RED = '#ef6a5f';
       table.grid tr.dim td { opacity: 0.45; }
       table.grid .empty { text-align: center; color: var(--ink-faint); padding: 20px; }
 
-      /* Pivot: keep the month column visible while scrolling sideways */
-      table.pivot .sticky-col {
+      /* Keep the label column visible while a wide grid scrolls sideways.
+         The pin needs an opaque fill — the card's glass background is
+         see-through, so the value cells would slide under the labels and
+         read as one smudged column. */
+      table.grid.pinned {
+        --pin-bg: light-dark(rgba(248, 250, 253, 0.98), rgba(22, 28, 36, 0.98));
+        --pin-bg-hover: light-dark(rgba(238, 243, 249, 0.98), rgba(32, 40, 50, 0.98));
+      }
+      table.grid.pinned .sticky-col {
         position: sticky;
         left: 0;
-        background: var(--glass-bg-strong);
-        backdrop-filter: blur(8px);
+        z-index: 2;
+        background: var(--pin-bg);
+        box-shadow: 1px 0 0 var(--hairline);
+      }
+      table.grid.pinned thead .sticky-col,
+      table.grid.pinned tfoot .sticky-col { z-index: 3; }
+      table.grid.pinned tbody tr:hover .sticky-col { background: var(--pin-bg-hover); }
+      /* Row dimming works by opacity, which would make the pin see-through
+         again — dim those labels with colour instead. */
+      table.grid.pinned tr.dim .sticky-col { opacity: 1; color: var(--ink-faint); }
+      /* The pinned label shouldn't eat the card on a narrow phone. */
+      table.grid.pinned .sticky-col {
+        max-width: 46vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .badge {
@@ -476,12 +497,6 @@ const RED = '#ef6a5f';
         table.grid td { padding: 7px 9px; }
         .share-bar { max-width: 36px; }
         .share-text { min-width: 36px; }
-
-        /* Sticky column needs an opaque-enough backdrop to hide the
-           cells sliding under it. */
-        table.pivot .sticky-col {
-          background: light-dark(rgba(248, 250, 253, 0.96), rgba(22, 28, 36, 0.96));
-        }
       }
     `,
   ],
