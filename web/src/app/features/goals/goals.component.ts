@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
+import { dateToIso } from '../../core/date';
 import { AccountBalance, SavingsGoal } from '../../core/models';
 
 interface GoalView extends SavingsGoal {
@@ -23,6 +25,7 @@ interface GoalView extends SavingsGoal {
     FormsModule,
     MatCardModule,
     MatButtonModule,
+    MatDatepickerModule,
     MatIconModule,
     MatProgressBarModule,
   ],
@@ -50,7 +53,19 @@ interface GoalView extends SavingsGoal {
                 <option [ngValue]="a.id">Track {{ a.name }}</option>
               }
             </select>
-            <input class="plain-input" type="date" [(ngModel)]="f.target_date" />
+            <div class="plain-input-wrap">
+              <input
+                class="plain-input has-suffix"
+                readonly
+                placeholder="Target date"
+                [matDatepicker]="targetPicker"
+                [value]="targetDate()"
+                (dateChange)="onTargetDate($event.value)"
+                (click)="targetPicker.open()"
+              />
+              <mat-datepicker-toggle class="suffix-icon" [for]="targetPicker" />
+              <mat-datepicker #targetPicker />
+            </div>
             <button class="action-btn" (click)="add()" [disabled]="!f.name || !f.target_amount">
               <mat-icon>add</mat-icon> Add
             </button>
@@ -117,6 +132,12 @@ interface GoalView extends SavingsGoal {
       .plain-input-wrap { position: relative; display: flex; align-items: center; }
       .plain-input-wrap .prefix { position: absolute; left: 12px; color: var(--mat-sys-on-surface-variant); }
       .plain-input.amt { padding-left: 26px; width: 140px; }
+      .plain-input.has-suffix { padding-right: 40px; cursor: pointer; }
+      .plain-input-wrap .suffix-icon {
+        position: absolute; right: -4px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--mat-sys-on-surface-variant);
+      }
       .action-btn {
         background: var(--accent-grad);
         color: #fff; border: none; border-radius: 10px; padding: 0 18px; height: 44px;
@@ -193,8 +214,16 @@ export class GoalsComponent {
     target_date: string;
   } = { name: '', target_amount: null, account_id: null, target_date: '' };
 
+  /** Picker view of `f.target_date`, which stays a `yyyy-MM-dd` string. */
+  readonly targetDate = signal<Date | null>(null);
+
   constructor() {
     this.load();
+  }
+
+  onTargetDate(date: Date | null) {
+    this.targetDate.set(date);
+    this.f.target_date = dateToIso(date);
   }
 
   private load() {
@@ -219,6 +248,7 @@ export class GoalsComponent {
       .subscribe({
         next: () => {
           this.f = { name: '', target_amount: null, account_id: null, target_date: '' };
+          this.targetDate.set(null);
           this.load();
         },
         error: () => this.snack.open('Could not add goal', 'OK', { duration: 3000 }),

@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
+import { dateToIso, isoToDate } from '../../core/date';
 import {
   Account,
   Category,
@@ -24,6 +26,7 @@ import {
     FormsModule,
     MatCardModule,
     MatButtonModule,
+    MatDatepickerModule,
     MatIconModule,
     MatSlideToggleModule,
   ],
@@ -65,7 +68,18 @@ import {
             </label>
             <label class="inline-field">
               <span>Next</span>
-              <input class="plain-input" type="date" [(ngModel)]="f.next_run" />
+              <div class="plain-input-wrap">
+                <input
+                  class="plain-input has-suffix"
+                  readonly
+                  [matDatepicker]="nextPicker"
+                  [value]="nextRun()"
+                  (dateChange)="onNextRun($event.value)"
+                  (click)="nextPicker.open()"
+                />
+                <mat-datepicker-toggle class="suffix-icon" [for]="nextPicker" />
+                <mat-datepicker #nextPicker />
+              </div>
             </label>
             <select class="plain-input" [(ngModel)]="f.account_id">
               <option [ngValue]="null">Account…</option>
@@ -133,6 +147,12 @@ import {
         position: absolute; left: 12px; color: var(--mat-sys-on-surface-variant); font-size: 0.9rem;
       }
       .plain-input.amt { padding-left: 26px; width: 130px; }
+      .plain-input.has-suffix { padding-right: 40px; cursor: pointer; width: 150px; }
+      .plain-input-wrap .suffix-icon {
+        position: absolute; right: -4px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--mat-sys-on-surface-variant);
+      }
       .inline-field { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--mat-sys-on-surface-variant); }
       .action-btn {
         background: var(--accent-grad);
@@ -207,6 +227,9 @@ export class RecurringComponent {
     category_id: null,
   };
 
+  /** Picker view of `f.next_run`, which stays a `yyyy-MM-dd` string. */
+  readonly nextRun = signal<Date | null>(isoToDate(this.f.next_run));
+
   constructor() {
     forkJoin({
       items: this.api.listRecurring(),
@@ -221,6 +244,11 @@ export class RecurringComponent {
 
   private reload() {
     this.api.listRecurring().subscribe((r) => this.items.set(r));
+  }
+
+  onNextRun(date: Date | null) {
+    this.nextRun.set(date);
+    this.f.next_run = dateToIso(date);
   }
 
   cadence(r: RecurringTransaction): string {

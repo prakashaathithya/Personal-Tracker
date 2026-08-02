@@ -61,6 +61,34 @@ html {
     elevated-container-shape: 20px,
   ));
 
+  /* Calendar: glass panel, mint selection, dimmed out-of-month days. Every
+     color routes through the app tokens so the sidebar theme toggle (which
+     flips `color-scheme` on <html>) repaints the calendar too — the native
+     `<input type=date>` picker these replaced could never follow it. */
+  @include mat.datepicker-overrides((
+    calendar-container-shape: 18px,
+    calendar-container-text-color: var(--ink),
+    calendar-body-label-text-color: var(--ink-faint),
+    calendar-header-text-color: var(--ink-faint),
+    calendar-header-text-weight: 600,
+    calendar-period-button-text-color: var(--ink),
+    calendar-period-button-text-weight: 700,
+    calendar-period-button-icon-color: var(--ink-soft),
+    calendar-navigation-button-icon-color: var(--ink-soft),
+    calendar-date-text-color: var(--ink),
+    calendar-date-outline-color: transparent,
+    calendar-date-disabled-state-text-color: var(--ink-faint),
+    calendar-date-hover-state-background-color: var(--hover-bg),
+    calendar-date-focus-state-background-color: var(--hover-bg),
+    calendar-date-today-outline-color: var(--accent),
+    calendar-date-today-selected-state-outline-color: transparent,
+    calendar-date-selected-state-background-color: var(--accent),
+    calendar-date-selected-state-text-color: var(--on-accent),
+    calendar-date-in-range-state-background-color: color-mix(in srgb, var(--accent) 20%, transparent),
+    toggle-icon-color: var(--ink-faint),
+    toggle-active-state-icon-color: var(--accent-bright),
+  ));
+
   /* ---- Responsive / device tokens ----
      Safe-area insets keep content clear of Android gesture bars and
      notches once this ships as a wrapped app (index.html sets
@@ -269,6 +297,64 @@ html {
   border: 1px solid var(--glass-border);
   border-radius: 14px !important;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Calendar structure — the tokens above carry the colors; these are the
+   shape/rhythm tweaks that make it read like the rest of the app. */
+.mat-datepicker-content {
+  overflow: hidden;
+
+  .mat-calendar {
+    width: 296px;
+    height: auto;
+    padding: 4px 6px 8px;
+  }
+
+  /* Header: month/year pill on the left, arrows on the right */
+  .mat-calendar-controls {
+    margin: 4px 6px 2px;
+  }
+  .mat-calendar-period-button {
+    border-radius: 10px;
+    letter-spacing: -0.01em;
+  }
+  .mat-calendar-period-button:hover,
+  .mat-calendar-previous-button:hover,
+  .mat-calendar-next-button:hover {
+    background: var(--hover-bg);
+  }
+
+  /* Weekday initials: small caps, dimmed, no underline rule */
+  .mat-calendar-table-header th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .mat-calendar-table-header-divider::after {
+    background: var(--hairline);
+  }
+
+  /* Day cells: squircle instead of Material's circle, matching the app's
+     rounded-rect language. */
+  .mat-calendar-body-cell-content {
+    border-radius: 11px;
+    font-weight: 500;
+    transition: background 140ms ease, color 140ms ease;
+  }
+  .mat-calendar-body-selected {
+    font-weight: 700;
+    box-shadow: 0 4px 12px oklch(0.6 0.15 168 / 0.35);
+  }
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    font-weight: 700;
+    color: var(--accent-ink);
+  }
+  /* Year / multi-year grids get the same pill treatment */
+  .mat-calendar-body-label {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
 }
 
 /* Dialogs: frosted glass sheet. The full-screen backdrop below carries a

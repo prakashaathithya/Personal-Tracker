@@ -5,8 +5,10 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { dateToIso, isoToDate } from '../../core/date';
 import { Account, Category, Direction, PaymentType, Transaction } from '../../core/models';
 
 export interface TxnDialogData {
@@ -20,6 +22,7 @@ export interface TxnDialogData {
   selector: 'app-transaction-dialog',
   imports: [
     ReactiveFormsModule,
+    MatDatepickerModule,
     MatDialogModule,
     MatIconModule,
     MatSelectModule,
@@ -70,9 +73,36 @@ export interface TxnDialogData {
             </button>
           </div>
 
-          <div class="field">
-            <label for="txn-date">Date<span class="req">*</span></label>
-            <input id="txn-date" type="date" class="control" formControlName="txn_date" />
+          <div class="field-row">
+            <div class="field">
+              <label for="txn-date">Date<span class="req">*</span></label>
+              <div class="control date-control" (click)="datePicker.open()">
+                <input
+                  id="txn-date"
+                  readonly
+                  placeholder="dd-mm-yyyy"
+                  [matDatepicker]="datePicker"
+                  [value]="dateValue()"
+                  (dateChange)="onDateChange($event.value)"
+                />
+                <mat-datepicker-toggle class="date-toggle" [for]="datePicker" />
+                <mat-datepicker #datePicker />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="txn-amount">Amount<span class="req">*</span></label>
+              <div class="control amount-control">
+                <span class="rupee">₹</span>
+                <input
+                  id="txn-amount"
+                  type="number"
+                  formControlName="amount"
+                  placeholder="0"
+                  min="0"
+                />
+              </div>
+            </div>
           </div>
 
           <div class="field">
@@ -84,20 +114,6 @@ export interface TxnDialogData {
               formControlName="description"
               placeholder="e.g. Grocery shopping"
             />
-          </div>
-
-          <div class="field">
-            <label for="txn-amount">Amount<span class="req">*</span></label>
-            <div class="control amount-control">
-              <span class="rupee">₹</span>
-              <input
-                id="txn-amount"
-                type="number"
-                formControlName="amount"
-                placeholder="0"
-                min="0"
-              />
-            </div>
           </div>
 
           <div class="field-row">
@@ -206,7 +222,7 @@ export interface TxnDialogData {
         align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
-        padding: 24px 26px 18px;
+        padding: 20px 26px 14px;
       }
       .dialog-head h2 {
         margin: 0;
@@ -237,14 +253,27 @@ export interface TxnDialogData {
       }
       .close-btn:hover { background: var(--hover-bg); color: var(--ink); }
 
+      /* The form is sized to fit without scrolling on a short laptop
+         viewport. It can still overflow (long OS text scaling, landscape
+         phone), so keep it scrollable — but as a thin inset rail rather
+         than the full-height bar hugging the dialog's rounded edge. */
       .dialog-body {
         flex: 1 1 auto;
         min-height: 0;
-        padding: 4px 26px 10px;
+        padding: 4px 20px 8px 26px;
         overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: var(--field-border) transparent;
+      }
+      .dialog-body::-webkit-scrollbar { width: 6px; }
+      .dialog-body::-webkit-scrollbar-track { background: transparent; }
+      .dialog-body::-webkit-scrollbar-thumb {
+        background: var(--field-border);
+        border-radius: 999px;
       }
 
-      .form { display: flex; flex-direction: column; gap: 16px; }
+      .form { display: flex; flex-direction: column; gap: 14px; }
 
       .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
       .field label {
@@ -288,10 +317,32 @@ export interface TxnDialogData {
       .control:focus,
       .control:focus-within { border-color: var(--accent); }
 
-      input[type='date'].control { color-scheme: light dark; }
-      input[type='date']::-webkit-calendar-picker-indicator {
+      /* Date well: read-only text + toggle, the whole well is the hit area.
+         (Was a native <input type="date">, whose picker ignored the app
+         theme and couldn't be styled at all.) */
+      .date-control {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px 5px 15px;
+        min-height: 48px;
         cursor: pointer;
-        opacity: 0.7;
+      }
+      .date-control input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        background: transparent;
+        outline: none;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.98rem;
+        cursor: pointer;
+      }
+      .date-control input::placeholder { color: var(--ink-faint); }
+      .date-control .date-toggle {
+        flex: none;
+        color: var(--ink-faint);
       }
 
       /* Standalone mat-select styled as a glass well */
@@ -308,11 +359,13 @@ export interface TxnDialogData {
         border-color: var(--accent);
       }
 
+      /* min-height matches the date well so the two line up in their row */
       .amount-control {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 11px 15px;
+        min-height: 48px;
+        padding: 0 15px;
       }
       .amount-control .rupee {
         color: var(--accent);
@@ -405,8 +458,7 @@ export interface TxnDialogData {
         align-items: center;
         justify-content: flex-end;
         gap: 10px;
-        padding: 16px 26px 20px;
-        margin-top: 6px;
+        padding: 14px 26px 16px;
         border-top: 1px solid var(--hairline);
       }
       .btn-text {
@@ -501,6 +553,11 @@ export class TransactionDialogComponent {
   readonly isTransfer = computed(() => this.direction() === 'transfer');
   readonly planned = signal(this.data.transaction?.planned ?? false);
 
+  /** Picker view of `txn_date`; the control itself stays a `yyyy-MM-dd` string. */
+  readonly dateValue = signal<Date | null>(
+    isoToDate(this.data.transaction?.txn_date?.slice(0, 10) ?? todayStr()),
+  );
+
   readonly form = this.fb.nonNullable.group({
     direction: [this.data.transaction?.direction ?? ('expense' as Direction)],
     txn_date: [
@@ -529,6 +586,12 @@ export class TransactionDialogComponent {
 
   setDirection(d: Direction) {
     this.form.controls.direction.setValue(d);
+  }
+
+  onDateChange(date: Date | null) {
+    this.dateValue.set(date);
+    this.form.controls.txn_date.setValue(dateToIso(date));
+    this.form.controls.txn_date.markAsDirty();
   }
 
   togglePlanned() {
