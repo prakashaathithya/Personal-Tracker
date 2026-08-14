@@ -4,10 +4,15 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   Account,
+  AppNotification,
   BudgetItem,
+  CardEmiPlan,
+  CardStatement,
+  CardStatementDetail,
   CategorizationRule,
   Category,
   CategoryTotal,
+  CreditCard,
   ImportRow,
   RecurringTransaction,
   ImportPreview,
@@ -236,6 +241,88 @@ export class ApiService {
   }
   deleteGoal(id: string): Observable<unknown> {
     return this.http.delete(`${this.base}/goals/${id}`);
+  }
+
+  // Credit cards
+  listCreditCards(): Observable<CreditCard[]> {
+    return this.http.get<CreditCard[]>(`${this.base}/credit-cards`);
+  }
+  createCreditCard(body: Partial<CreditCard> & { account_id: string }): Observable<CreditCard> {
+    return this.http.post<CreditCard>(`${this.base}/credit-cards`, body);
+  }
+  updateCreditCard(accountId: string, body: Partial<CreditCard>): Observable<CreditCard> {
+    return this.http.patch<CreditCard>(`${this.base}/credit-cards/${accountId}`, body);
+  }
+  deleteCreditCard(accountId: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/credit-cards/${accountId}`);
+  }
+  /** Generates any bills whose statement date has passed; safe to repeat. */
+  runCreditCards(): Observable<{ statements: number; notifications: number }> {
+    return this.http.post<{ statements: number; notifications: number }>(
+      `${this.base}/credit-cards/run`,
+      {},
+    );
+  }
+  listStatements(cardAccountId?: string, limit?: number): Observable<CardStatement[]> {
+    return this.http.get<CardStatement[]>(`${this.base}/credit-cards/statements`, {
+      params: this.params({ card_account_id: cardAccountId, limit }),
+    });
+  }
+  getStatement(id: string): Observable<CardStatementDetail> {
+    return this.http.get<CardStatementDetail>(`${this.base}/credit-cards/statements/${id}`);
+  }
+  updateStatement(id: string, body: Partial<CardStatement>): Observable<CardStatement> {
+    return this.http.patch<CardStatement>(`${this.base}/credit-cards/statements/${id}`, body);
+  }
+  payStatement(
+    id: string,
+    body: { amount: number; from_account_id?: string; txn_date?: string },
+  ): Observable<{ statement: CardStatement; transaction: Transaction }> {
+    return this.http.post<{ statement: CardStatement; transaction: Transaction }>(
+      `${this.base}/credit-cards/statements/${id}/pay`,
+      body,
+    );
+  }
+  /** Card purchases still eligible to be converted to EMI. */
+  unbilledCardTransactions(cardAccountId: string): Observable<Transaction[]> {
+    return this.http.get<Transaction[]>(
+      `${this.base}/credit-cards/${cardAccountId}/unbilled`,
+    );
+  }
+  listEmiPlans(cardAccountId?: string): Observable<CardEmiPlan[]> {
+    return this.http.get<CardEmiPlan[]>(`${this.base}/credit-cards/emi`, {
+      params: this.params({ card_account_id: cardAccountId }),
+    });
+  }
+  createEmiPlan(body: {
+    transaction_id: string;
+    tenure_months: number;
+    annual_rate?: number;
+    emi_amount?: number;
+    processing_fee?: number;
+    description?: string;
+  }): Observable<CardEmiPlan> {
+    return this.http.post<CardEmiPlan>(`${this.base}/credit-cards/emi`, body);
+  }
+  deleteEmiPlan(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/credit-cards/emi/${id}`);
+  }
+
+  // Notifications
+  listNotifications(limit = 30): Observable<{ data: AppNotification[]; unread: number }> {
+    return this.http.get<{ data: AppNotification[]; unread: number }>(
+      `${this.base}/notifications`,
+      { params: this.params({ limit }) },
+    );
+  }
+  markNotificationRead(id: string): Observable<AppNotification> {
+    return this.http.post<AppNotification>(`${this.base}/notifications/${id}/read`, {});
+  }
+  markAllNotificationsRead(): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.base}/notifications/read-all`, {});
+  }
+  deleteNotification(id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/notifications/${id}`);
   }
 
   // Import

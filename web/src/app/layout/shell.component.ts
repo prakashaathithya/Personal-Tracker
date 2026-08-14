@@ -6,7 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
+import { NotificationService } from '../core/notification.service';
 import { ThemeService } from '../core/theme.service';
+import { AppNotification } from '../core/models';
 import { LogoComponent } from '../shared/logo.component';
 
 interface NavItem {
@@ -39,6 +41,18 @@ interface NavItem {
             <app-logo [size]="20" [mono]="true" ink="#ffffff" />
           </span>
           <span class="brand-name">MoneyMap</span>
+          <span class="sidebar-spacer"></span>
+          <button
+            class="bell-btn"
+            (click)="toggleBell()"
+            matTooltip="Notifications"
+            aria-label="Notifications"
+          >
+            <mat-icon>notifications</mat-icon>
+            @if (notices.unread(); as n) {
+              <span class="badge">{{ n > 9 ? '9+' : n }}</span>
+            }
+          </button>
         </div>
 
         <p class="nav-heading">Menu</p>
@@ -91,6 +105,12 @@ interface NavItem {
         </span>
         <span class="brand-name">MoneyMap</span>
         <span class="sidebar-spacer"></span>
+        <button class="icon-btn bell-btn" (click)="toggleBell()" aria-label="Notifications">
+          <mat-icon>notifications</mat-icon>
+          @if (notices.unread(); as n) {
+            <span class="badge">{{ n > 9 ? '9+' : n }}</span>
+          }
+        </button>
         <button class="icon-btn" (click)="theme.toggle()" [attr.aria-label]="theme.isDark() ? 'Light mode' : 'Dark mode'">
           <mat-icon>{{ theme.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
@@ -143,6 +163,56 @@ interface NavItem {
                 <mat-icon>{{ item.icon }}</mat-icon>
                 <span>{{ item.label }}</span>
               </a>
+            }
+          </div>
+        </div>
+      }
+
+      @if (bellOpen()) {
+        <div class="bell-scrim" (click)="bellOpen.set(false)"></div>
+        <div class="bell-panel" role="dialog" aria-label="Notifications">
+          <span class="sheet-grip"></span>
+          <div class="bell-head">
+            <span class="bell-title">Notifications</span>
+            <span class="sidebar-spacer"></span>
+            @if (notices.hasUnread()) {
+              <button class="link-btn" (click)="notices.markAllRead()">
+                Mark all read
+              </button>
+            }
+          </div>
+
+          @if (!notices.items().length) {
+            <p class="bell-empty">
+              Nothing yet. Credit card bills, due-date reminders and limit
+              warnings show up here.
+            </p>
+          }
+
+          <div class="bell-list">
+            @for (n of notices.items(); track n.id) {
+              <div
+                class="bell-item"
+                [class.unread]="!n.read_at"
+                (click)="openNotification(n)"
+              >
+                <span class="bell-icon">
+                  <mat-icon>{{ notices.icon(n.type) }}</mat-icon>
+                </span>
+                <span class="bell-text">
+                  <span class="bell-item-title">{{ n.title }}</span>
+                  @if (n.body) {
+                    <span class="bell-body">{{ n.body }}</span>
+                  }
+                </span>
+                <button
+                  class="bell-x"
+                  (click)="$event.stopPropagation(); notices.dismiss(n)"
+                  aria-label="Dismiss"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
             }
           </div>
         </div>
@@ -376,6 +446,177 @@ interface NavItem {
         overflow-y: auto;
         overflow-x: hidden;
         border-radius: 22px;
+      }
+
+      /* ---- Notification bell + dropdown ---- */
+      .bell-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--ink-soft);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .bell-btn:hover {
+        background: var(--hover-bg);
+        color: var(--ink);
+      }
+      .bell-btn mat-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
+      }
+      .badge {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+        min-width: 15px;
+        height: 15px;
+        padding: 0 3px;
+        box-sizing: border-box;
+        border-radius: 999px;
+        background: light-dark(oklch(0.55 0.2 25), oklch(0.66 0.2 25));
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        line-height: 15px;
+        text-align: center;
+      }
+
+      /* Invisible catcher so a click anywhere else closes the panel. */
+      .bell-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+      }
+
+      .bell-panel {
+        position: fixed;
+        z-index: 31;
+        top: 84px;
+        left: 300px;
+        width: 360px;
+        max-width: calc(100vw - 40px);
+        max-height: min(480px, calc(100dvh - 140px));
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        box-sizing: border-box;
+        background: light-dark(rgba(255, 255, 255, 0.9), rgba(26, 32, 42, 0.94));
+        -webkit-backdrop-filter: blur(28px) saturate(150%);
+        backdrop-filter: blur(28px) saturate(150%);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
+      }
+      .bell-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 4px 10px;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .bell-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .link-btn {
+        border: none;
+        background: transparent;
+        color: var(--accent-ink);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 4px 6px;
+        border-radius: 8px;
+      }
+      .link-btn:hover {
+        background: var(--hover-bg);
+      }
+      .bell-empty {
+        margin: 16px 6px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink-faint);
+      }
+      .bell-list {
+        overflow-y: auto;
+        margin-top: 4px;
+      }
+      .bell-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 6px;
+        border-radius: 12px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--hairline);
+      }
+      .bell-item:hover {
+        background: var(--hover-bg);
+      }
+      .bell-icon {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: 9px;
+        background: var(--surface-2);
+        color: var(--ink-soft);
+      }
+      .bell-icon mat-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+      }
+      .bell-item.unread .bell-icon {
+        background: var(--accent-grad);
+        color: var(--on-accent);
+      }
+      .bell-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        flex: 1;
+      }
+      .bell-item-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .bell-item.unread .bell-item-title {
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .bell-body {
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--ink-faint);
+      }
+      .bell-x {
+        border: none;
+        background: transparent;
+        color: var(--ink-faint);
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .bell-x mat-icon {
+        width: 15px;
+        height: 15px;
+        font-size: 15px;
       }
 
       /* ============================================================ *
@@ -621,6 +862,38 @@ interface NavItem {
           color: var(--on-accent);
         }
 
+        /* The bell dropdown becomes a bottom sheet, like "More". */
+        .bell-scrim {
+          background: light-dark(rgba(30, 45, 60, 0.3), rgba(3, 6, 10, 0.5));
+          -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+          animation: fade-in 160ms ease;
+        }
+        .bell-panel {
+          top: auto;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: auto;
+          max-width: none;
+          max-height: 72dvh;
+          padding: 8px 16px calc(16px + var(--safe-bottom));
+          border-radius: 24px 24px 0 0;
+          border-bottom: none;
+          animation: slide-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .bell-btn.icon-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+        }
+        .bell-btn.icon-btn mat-icon {
+          width: 21px;
+          height: 21px;
+          font-size: 21px;
+        }
+        .bell-item { padding: 12px 6px; }
+
         @keyframes slide-up {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
@@ -638,7 +911,7 @@ interface NavItem {
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .sheet, .sheet-scrim { animation: none; }
+        .sheet, .sheet-scrim, .bell-panel, .bell-scrim { animation: none; }
       }
     `,
   ],
@@ -646,6 +919,7 @@ interface NavItem {
 export class ShellComponent {
   readonly auth = inject(AuthService);
   readonly theme = inject(ThemeService);
+  readonly notices = inject(NotificationService);
   private readonly router = inject(Router);
   private readonly api = inject(ApiService);
 
@@ -653,6 +927,20 @@ export class ShellComponent {
 
   /** Mobile "More" sheet visibility. */
   readonly moreOpen = signal(false);
+  /** Notification dropdown visibility. */
+  readonly bellOpen = signal(false);
+
+  toggleBell() {
+    const open = !this.bellOpen();
+    this.bellOpen.set(open);
+    if (open) this.notices.refresh();
+  }
+
+  openNotification(n: AppNotification) {
+    this.notices.markRead(n);
+    this.bellOpen.set(false);
+    void this.router.navigateByUrl(n.link ?? '/credit-cards');
+  }
 
   private readonly url = toSignal(
     this.router.events.pipe(
@@ -672,11 +960,16 @@ export class ShellComponent {
     // (A nightly pg_cron job also does this server-side for all users.)
     this.api.runRecurring().subscribe({ error: () => undefined });
 
+    // Same idea for credit cards: generate any bill whose statement date
+    // has passed and toast whatever that raised.
+    this.notices.bootstrap();
+
     // Dismiss the More sheet on any navigation — including the Android
     // back button, which the in-template click handler never sees.
     effect(() => {
       this.url();
       this.moreOpen.set(false);
+      this.bellOpen.set(false);
     });
   }
 
@@ -690,6 +983,7 @@ export class ShellComponent {
 
   /** Behind the "More" sheet on mobile; rest of the sidebar on desktop. */
   readonly moreNav: NavItem[] = [
+    { path: 'credit-cards', label: 'Credit Cards', icon: 'credit_card' },
     { path: 'goals', label: 'Goals', icon: 'flag' },
     { path: 'loans', label: 'Loans / EMI', icon: 'account_balance' },
     { path: 'recurring', label: 'Recurring', icon: 'event_repeat' },
