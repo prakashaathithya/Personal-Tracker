@@ -200,6 +200,97 @@ export interface MonthlyReportRow {
   balance: number;
 }
 
+/** 'carried' = rolled into the next bill because it wasn't cleared in time. */
+export type StatementStatus = 'unpaid' | 'partially_paid' | 'paid' | 'carried';
+
+export interface CardStatement {
+  id: string;
+  card_account_id: string;
+  period_start: string;
+  period_end: string;
+  statement_date: string;
+  due_date: string;
+  computed_amount: number;
+  total_amount: number;
+  minimum_due: number;
+  paid_amount: number;
+  carried_over: number;
+  status: StatementStatus;
+}
+
+export interface CardStatementDetail extends CardStatement {
+  transactions: Transaction[];
+  installments: (CardEmiInstallment & {
+    plan?: { id: string; description: string; tenure_months: number } | null;
+  })[];
+}
+
+export interface CreditCard {
+  account_id: string;
+  statement_day: number;
+  due_days_after: number;
+  credit_limit: number;
+  default_payment_account_id: string | null;
+  min_due_pct: number;
+  utilisation_alert_pct: number;
+  reminder_days_before: number;
+  account?: { id: string; name: string; type: AccountType } | null;
+  payment_account?: { id: string; name: string; type: AccountType } | null;
+  /** How much is owed on the card right now, bills or not. */
+  outstanding: number;
+  available: number | null;
+  utilisation_pct: number | null;
+  open_statements: CardStatement[];
+  due_total: number;
+  next_due_date: string | null;
+}
+
+export interface CardEmiInstallment {
+  id: string;
+  plan_id: string;
+  period: number;
+  due_date: string;
+  emi: number;
+  interest: number;
+  principal_paid: number;
+  balance: number;
+  billed: boolean;
+  statement_id: string | null;
+}
+
+export interface CardEmiPlan {
+  id: string;
+  card_account_id: string;
+  transaction_id: string | null;
+  category_id: string | null;
+  description: string;
+  principal: number;
+  annual_rate: number;
+  tenure_months: number;
+  emi_amount: number;
+  processing_fee: number;
+  start_date: string;
+  is_active: boolean;
+  installments?: CardEmiInstallment[];
+}
+
+export type NotificationType =
+  | 'card_bill_generated'
+  | 'card_bill_due_soon'
+  | 'card_bill_overdue'
+  | 'card_limit_warning';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  entity_id: string | null;
+  link: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 export interface ImportRow {
   txn_date: string;
   description: string;

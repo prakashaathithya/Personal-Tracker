@@ -15,6 +15,8 @@ import { ImportController } from './import/import.controller';
 import { RulesController } from './rules/rules.controller';
 import { RecurringController } from './recurring/recurring.controller';
 import { GoalsController } from './goals/goals.controller';
+import { CreditCardsController } from './credit-cards/credit-cards.controller';
+import { NotificationsController } from './notifications/notifications.controller';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), SupabaseModule],
@@ -32,6 +34,8 @@ import { GoalsController } from './goals/goals.controller';
     RulesController,
     RecurringController,
     GoalsController,
+    CreditCardsController,
+    NotificationsController,
   ],
   providers: [AppService],
 })
