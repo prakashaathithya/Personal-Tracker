@@ -25,7 +25,6 @@ export function buildSchedule(params: {
 
   const rows: ScheduleRow[] = [];
   let balance = principal;
-  const start = new Date(startDate);
 
   for (let period = 1; period <= cap && balance > 0.005; period++) {
     const interest = round2(balance * monthlyRate);
@@ -39,12 +38,10 @@ export function buildSchedule(params: {
     }
 
     balance = round2(balance - principalPaid);
-    const due = new Date(start);
-    due.setMonth(due.getMonth() + (period - 1));
 
     rows.push({
       period,
-      due_date: due.toISOString().slice(0, 10),
+      due_date: addMonths(startDate, period - 1),
       emi: payment,
       interest,
       principal_paid: principalPaid,
@@ -53,6 +50,22 @@ export function buildSchedule(params: {
   }
 
   return rows;
+}
+
+/**
+ * `iso` shifted forward by `n` whole months, clamped to the length of the
+ * target month — a loan that starts on the 31st is due on the 28th/30th in
+ * shorter months rather than spilling into the next one. All arithmetic is
+ * UTC so the schedule doesn't drift with the server's timezone.
+ */
+function addMonths(iso: string, n: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const target = m - 1 + n;
+  const year = y + Math.floor(target / 12);
+  const month = ((target % 12) + 12) % 12; // 0-based
+  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const day = Math.min(d, lastDay);
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 function round2(n: number): number {

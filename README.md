@@ -12,23 +12,69 @@ Personal finance tracker — track expenses, monthly budgets, and loan/EMI sched
 ```
 /
 ├── web/            Angular frontend (built to web/dist/web/browser)
+├── server/         NestJS modules, controllers, pure logic + its unit tests
 ├── api/
-│   ├── index.ts    Vercel serverless entry — bootstraps the Nest app
-│   └── src/        NestJS modules, controllers, services
-├── package.json    npm workspaces root (web + api)
+│   └── index.ts    Vercel serverless entry — bootstraps the Nest app from /server
+├── supabase/
+│   └── migrations/ Versioned schema changes (see its README)
+├── package.json    npm workspaces root (web + server)
 └── vercel.json     Vercel build + routing config
 ```
 
 ## Local development
 
 ```bash
-npm install          # installs both workspaces
+npm ci               # installs both workspaces from the lockfile
 
 npm run dev:api      # NestJS on http://localhost:3000  (routes under /api)
 npm run dev:web      # Angular on http://localhost:4200
 ```
 
 The Angular dev server proxies `/api` to the NestJS server (see `web/proxy.conf.json`).
+
+## Tests
+
+```bash
+npm run test:api     # jest — pure logic: billing cycles, amortization, report
+                     #        rollups, import dedupe, categorization rules
+npm run test:web     # vitest
+npm run lint:api     # eslint + prettier
+```
+
+CI (`.github/workflows/ci.yml`) runs lint, build and tests for both workspaces on
+every push to `main` and every pull request.
+
+## Dependencies
+
+`package-lock.json` is committed, and CI and Vercel install with `npm ci`.
+
+**Regenerating the lockfile needs care.** When a `node_modules/` tree is present,
+npm resolves optional dependencies against the *current* platform, so a plain
+`npm install` on Windows writes a lockfile holding only the win32 native binaries
+— and `npm ci` on Vercel's Linux builder then fails on the missing ones. Generate
+it where there is no `node_modules` instead:
+
+```bash
+mkdir /tmp/lockgen && cd /tmp/lockgen
+mkdir web server
+cp <repo>/package.json .
+cp <repo>/web/package.json web/
+cp <repo>/server/package.json server/
+npm install --package-lock-only --ignore-scripts
+cp package-lock.json <repo>/
+```
+
+Sanity check before committing — every native package should list both platforms:
+
+```bash
+grep -o '"node_modules/[^"]*\(win32\|linux\)[^"]*"' package-lock.json | sort -u
+```
+
+## Database
+
+Schema lives in `supabase/migrations/` as versioned SQL files, applied through the
+Supabase SQL editor. See [supabase/migrations/README.md](supabase/migrations/README.md)
+for the apply procedure and what each migration does.
 
 ## Build
 
