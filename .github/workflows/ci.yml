@@ -15,12 +15,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            package.json
-            server/package.json
-      # No package-lock.json is committed (a Windows-generated lockfile
-      # breaks Vercel's Linux install), so `npm ci` isn't available here.
-      - run: npm install
+          cache-dependency-path: package-lock.json
+      - run: npm ci
       - run: npm run lint:api
       - run: npm run build:api
       - run: npm run test:api
@@ -34,9 +30,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            package.json
-            web/package.json
-      - run: npm install
+          cache-dependency-path: package-lock.json
+      - run: npm ci
       - run: npm run build:web
       - run: npm run test:web
