@@ -11,6 +11,10 @@ export interface ScheduleRow {
  * Builds a reducing-balance amortization schedule (mirrors the Excel EMI sheet).
  * Interest each month = balance * annualRate/12. EMI stays fixed; the final
  * payment is trimmed so the balance lands exactly on zero.
+ *
+ * `startDate` is the day the loan was disbursed, so the first instalment falls
+ * one month after it — the usual lender convention, and the one the recorded
+ * payments in this database follow.
  */
 export function buildSchedule(params: {
   principal: number;
@@ -41,7 +45,7 @@ export function buildSchedule(params: {
 
     rows.push({
       period,
-      due_date: addMonths(startDate, period - 1),
+      due_date: addMonths(startDate, period),
       emi: payment,
       interest,
       principal_paid: principalPaid,

@@ -57,12 +57,14 @@ describe('buildSchedule', () => {
     expect(rows[11].balance).toBe(0);
   });
 
-  it('advances the due date one month per period', () => {
+  it('falls due one month after disbursement, then monthly', () => {
     const rows = buildSchedule(loan);
 
-    expect(rows[0].due_date).toBe('2026-01-10');
-    expect(rows[1].due_date).toBe('2026-02-10');
-    expect(rows[11].due_date).toBe('2026-12-10');
+    // Nothing is owed on the start date itself: that is the day the money
+    // arrived, not the day the first instalment is taken.
+    expect(rows[0].due_date).toBe('2026-02-10');
+    expect(rows[1].due_date).toBe('2026-03-10');
+    expect(rows[11].due_date).toBe('2027-01-10');
   });
 
   it('clamps a month-end start date to the length of each month', () => {
@@ -75,9 +77,9 @@ describe('buildSchedule', () => {
 
     // February has no 31st: the due date must not spill into March.
     expect(rows.map((r) => r.due_date)).toEqual([
-      '2026-01-31',
       '2026-02-28',
       '2026-03-31',
+      '2026-04-30',
     ]);
   });
 
@@ -90,9 +92,9 @@ describe('buildSchedule', () => {
     });
 
     expect(rows.map((r) => r.due_date)).toEqual([
-      '2026-11-15',
       '2026-12-15',
       '2027-01-15',
+      '2027-02-15',
     ]);
   });
 
