@@ -15,11 +15,18 @@ import { ImportController } from './import/import.controller';
 import { RulesController } from './rules/rules.controller';
 import { RecurringController } from './recurring/recurring.controller';
 import { GoalsController } from './goals/goals.controller';
-import { CreditCardsController } from './credit-cards/credit-cards.controller';
+import {
+  CreditCardsController,
+  CreditCardsCronController,
+} from './credit-cards/credit-cards.controller';
+import { CreditCardsService } from './credit-cards/credit-cards.service';
 import { NotificationsController } from './notifications/notifications.controller';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), SupabaseModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    SupabaseModule,
+  ],
   controllers: [
     AppController,
     AccountsController,
@@ -34,9 +41,10 @@ import { NotificationsController } from './notifications/notifications.controlle
     RulesController,
     RecurringController,
     GoalsController,
+    CreditCardsCronController,
     CreditCardsController,
     NotificationsController,
   ],
-  providers: [AppService],
+  providers: [AppService, CreditCardsService],
 })
 export class AppModule {}

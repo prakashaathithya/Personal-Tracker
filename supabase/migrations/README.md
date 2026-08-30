@@ -37,6 +37,7 @@ storage bucket, and credit-card billing.
 | 20260712160253 | Restricts EXECUTE on `run_due_recurring()` to `authenticated` |
 | 20260712160920 | `savings_goals`, transaction `receipt_path`, private `receipts` storage bucket + its object policies |
 | 20260812000000 | Credit cards: `credit_cards`, `card_statements`, `card_emi_plans`, `card_emi_installments`, `notifications` |
+| 20260822102944 | `job_locks` plus `try_acquire_job_lock()` / `release_job_lock()` — the lease that keeps two statement catch-ups from running at once |
 
 ## Provenance
 
@@ -49,3 +50,10 @@ table exists in `public` that these files do not create).
 `20260812000000_credit_cards.sql` was authored here and applied through the SQL editor,
 but it was never recorded in `supabase_migrations.schema_migrations`. Run the insert
 above with that file's contents to close the gap.
+
+`20260822102944_job_locks.sql` was applied on 2026-08-22 and *is* recorded, so the
+file name and the recorded version match. Two advisories it raises on purpose:
+`job_locks` has RLS enabled with no policies (nothing may reach it directly), and its
+two functions are `SECURITY DEFINER` and callable by `authenticated` (they build the
+lock key from `auth.uid()`, so a caller can only ever touch their own lease) — the
+same shape as `run_due_recurring`.

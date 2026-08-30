@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --no-package-lock",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build:web",
   "outputDirectory": "web/dist/web/browser",
   "functions": {
@@ -8,6 +8,7 @@
       "maxDuration": 30
     }
   },
+  "crons": [{ "path": "/api/credit-cards/cron", "schedule": "30 19 * * *" }],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }

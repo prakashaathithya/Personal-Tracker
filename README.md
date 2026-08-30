@@ -95,9 +95,24 @@ Required environment variables (set in the Vercel dashboard):
 | Variable | Used by | Purpose |
 |----------|---------|---------|
 | `SUPABASE_URL` | api | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | api | Server-side DB access |
-| `SUPABASE_JWT_SECRET` | api | Verify auth tokens from the frontend |
+| `SUPABASE_ANON_KEY` | api | Key every request-scoped client is built on |
 | `CORS_ORIGIN` | api | Allowed frontend origin(s), comma-separated |
-| `DATABASE_URL` | api | Pooled Postgres connection string |
+| `SUPABASE_SERVICE_ROLE_KEY` | api | Nightly job only — reads the list of user ids that own a card |
+| `SUPABASE_JWT_SECRET` | api | Nightly job only — mints a short-lived token per user so the run stays under RLS |
+| `CRON_SECRET` | api | Authenticates Vercel's scheduler; without it `/api/credit-cards/cron` returns 404 |
+
+## Scheduled work
+
+`vercel.json` schedules `POST /api/credit-cards/cron` daily at 19:30 UTC (01:00 IST).
+It generates any credit-card statement whose date has passed and raises the due,
+overdue and utilisation alerts, so bills appear without anyone opening the app.
+
+The same catch-up also runs on app load (`POST /credit-cards/run`). Both take a
+short lease from `job_locks` first, so two tabs — or a tab and the nightly job —
+can never generate the same bill twice; the caller that doesn't get the lease
+returns `skipped: true`.
+
+Recurring transactions are separate: they are materialized by `run_due_recurring()`
+inside Postgres, on a pg_cron schedule (see the migrations).
 
 Frontend (Angular) env values live in `web/src/environments/`.
