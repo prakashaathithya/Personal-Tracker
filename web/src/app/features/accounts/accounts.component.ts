@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { AccountBalance, AccountType } from '../../core/models';
 
 const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
@@ -171,6 +172,7 @@ const TYPE_META: Record<AccountType, { label: string; icon: string }> = {
 })
 export class AccountsComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly snack = inject(MatSnackBar);
 
   readonly accounts = signal<AccountBalance[]>([]);
@@ -195,6 +197,12 @@ export class AccountsComponent {
     this.api.accountBalances().subscribe((r) => this.accounts.set(r.accounts));
   }
 
+  /** After adding or removing an account, every account picker is stale. */
+  private reload() {
+    this.lookups.invalidate('accounts');
+    this.load();
+  }
+
   icon(t: AccountType) {
     return TYPE_META[t].icon;
   }
@@ -215,7 +223,7 @@ export class AccountsComponent {
           this.snack.open('Account added', 'OK', { duration: 2000 });
           this.newName = '';
           this.newOpening = null;
-          this.load();
+          this.reload();
         },
         error: () => this.snack.open('Failed to add account', 'OK', { duration: 3000 }),
       });
@@ -226,7 +234,7 @@ export class AccountsComponent {
     this.api.deleteAccount(a.id).subscribe({
       next: () => {
         this.snack.open('Account deleted', 'OK', { duration: 2000 });
-        this.load();
+        this.reload();
       },
       error: () => this.snack.open('Delete failed', 'OK', { duration: 3000 }),
     });

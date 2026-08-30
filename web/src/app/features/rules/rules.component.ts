@@ -7,6 +7,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { CategorizationRule, Category, MatchType } from '../../core/models';
 
 @Component({
@@ -139,6 +140,7 @@ import { CategorizationRule, Category, MatchType } from '../../core/models';
 })
 export class RulesComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly snack = inject(MatSnackBar);
 
   readonly rules = signal<CategorizationRule[]>([]);
@@ -152,7 +154,7 @@ export class RulesComponent {
   constructor() {
     forkJoin({
       rules: this.api.listRules(),
-      categories: this.api.listCategories(),
+      categories: this.lookups.categories(),
     }).subscribe((r) => {
       this.rules.set(r.rules);
       this.categories.set(r.categories);

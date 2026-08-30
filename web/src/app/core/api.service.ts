@@ -6,6 +6,7 @@ import {
   Account,
   AppNotification,
   BudgetItem,
+  CardCatchUpResult,
   CardEmiPlan,
   CardStatement,
   CardStatementDetail,
@@ -256,9 +257,13 @@ export class ApiService {
   deleteCreditCard(accountId: string): Observable<unknown> {
     return this.http.delete(`${this.base}/credit-cards/${accountId}`);
   }
-  /** Generates any bills whose statement date has passed; safe to repeat. */
-  runCreditCards(): Observable<{ statements: number; notifications: number }> {
-    return this.http.post<{ statements: number; notifications: number }>(
+  /**
+   * Generates any bills whose statement date has passed; safe to repeat.
+   * `skipped` means another run (another tab, or the nightly job) already had
+   * the lease — the work is being done, just not by this call.
+   */
+  runCreditCards(): Observable<CardCatchUpResult> {
+    return this.http.post<CardCatchUpResult>(
       `${this.base}/credit-cards/run`,
       {},
     );

@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { StorageService } from '../../core/storage.service';
 import { Account, Category, PaymentType, Transaction } from '../../core/models';
 import {
@@ -383,6 +384,7 @@ import {
 })
 export class TransactionsComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly dialog = inject(MatDialog);
   private readonly snack = inject(MatSnackBar);
 
@@ -402,9 +404,9 @@ export class TransactionsComponent {
 
   constructor() {
     forkJoin({
-      categories: this.api.listCategories(),
-      paymentTypes: this.api.listPaymentTypes(),
-      accounts: this.api.listAccounts(),
+      categories: this.lookups.categories(),
+      paymentTypes: this.lookups.paymentTypes(),
+      accounts: this.lookups.accounts(),
     }).subscribe((r) => {
       this.categories = r.categories;
       this.paymentTypes = r.paymentTypes;

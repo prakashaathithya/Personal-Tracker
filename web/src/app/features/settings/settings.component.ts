@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { Category, NeedClass, PaymentType } from '../../core/models';
 
 const PAYMENT_ICONS: Record<string, string> = {
@@ -297,6 +298,7 @@ const PAYMENT_ICONS: Record<string, string> = {
 })
 export class SettingsComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly snack = inject(MatSnackBar);
 
   readonly needClasses: NeedClass[] = ['Needs', 'Wants', 'Saving', 'Others'];
@@ -320,10 +322,20 @@ export class SettingsComponent {
   }
 
   private loadCategories() {
-    this.api.listCategories().subscribe((r) => this.categories.set(r));
+    this.lookups.categories().subscribe((r) => this.categories.set(r));
   }
   private loadPayments() {
-    this.api.listPaymentTypes().subscribe((r) => this.paymentTypes.set(r));
+    this.lookups.paymentTypes().subscribe((r) => this.paymentTypes.set(r));
+  }
+
+  /** After an edit here, every other screen's copy of the list is stale. */
+  private reloadCategories() {
+    this.lookups.invalidate('categories');
+    this.loadCategories();
+  }
+  private reloadPayments() {
+    this.lookups.invalidate('paymentTypes');
+    this.loadPayments();
   }
 
   pillClass(nc: NeedClass): string {
@@ -341,13 +353,13 @@ export class SettingsComponent {
       .subscribe({
         next: () => {
           this.newCat = '';
-          this.loadCategories();
+          this.reloadCategories();
         },
         error: (err) => this.snack.open(err?.error?.message ?? 'Failed', 'OK', { duration: 3000 }),
       });
   }
   deleteCategory(c: Category) {
-    this.api.deleteCategory(c.id).subscribe(() => this.loadCategories());
+    this.api.deleteCategory(c.id).subscribe(() => this.reloadCategories());
   }
 
   addPayment() {
@@ -355,12 +367,12 @@ export class SettingsComponent {
     this.api.createPaymentType({ name: this.newPay }).subscribe({
       next: () => {
         this.newPay = '';
-        this.loadPayments();
+        this.reloadPayments();
       },
       error: (err) => this.snack.open(err?.error?.message ?? 'Failed', 'OK', { duration: 3000 }),
     });
   }
   deletePayment(p: PaymentType) {
-    this.api.deletePaymentType(p.id).subscribe(() => this.loadPayments());
+    this.api.deletePaymentType(p.id).subscribe(() => this.reloadPayments());
   }
 }
