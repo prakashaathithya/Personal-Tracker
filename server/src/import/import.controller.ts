@@ -1,4 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ArrayMaxSize,
   IsArray,
@@ -46,6 +47,9 @@ interface ExistingTxn {
   direction: string;
 }
 
+// Each call can carry 5000 rows and fans out into several round trips, so
+// these two get a far tighter budget than the global one.
+@Throttle({ default: { limit: 10, ttl: 60_000 } })
 @UseGuards(AuthGuard)
 @Controller('import')
 export class ImportController {
