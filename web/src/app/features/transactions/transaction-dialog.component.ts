@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -8,6 +8,8 @@ import {
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable } from 'rxjs';
 import { dateToIso, isoToDate } from '../../core/date';
 import { Account, Category, Direction, PaymentType, Transaction } from '../../core/models';
 
@@ -16,6 +18,10 @@ export interface TxnDialogData {
   paymentTypes: PaymentType[];
   accounts: Account[];
   transaction?: Transaction;
+  /** Prefills for a new transaction — the last-used date, account, etc. */
+  defaults?: Partial<Transaction>;
+  /** Saves without closing the dialog ("Save & add another"). Add mode only. */
+  create?: (body: Partial<Transaction>) => Observable<unknown>;
 }
 
 @Component({
@@ -32,7 +38,13 @@ export interface TxnDialogData {
       <header class="dialog-head">
         <div>
           <h2>{{ data.transaction ? 'Edit' : 'Add' }} transaction</h2>
-          <p class="subtitle">Log an expense, income, or transfer</p>
+          <p class="subtitle">
+            @if (addedCount()) {
+              {{ addedCount() }} added — keep going or close
+            } @else {
+              Log an expense, income, or transfer
+            }
+          </p>
         </div>
         <button type="button" class="close-btn" mat-dialog-close aria-label="Close">
           <mat-icon>close</mat-icon>
@@ -95,8 +107,11 @@ export interface TxnDialogData {
               <div class="control amount-control">
                 <span class="rupee">₹</span>
                 <input
+                  #amountInput
                   id="txn-amount"
                   type="number"
+                  cdkFocusInitial
+                  (keydown.enter)="onEnter($event)"
                   formControlName="amount"
                   placeholder="0"
                   min="0"
@@ -113,6 +128,7 @@ export interface TxnDialogData {
               class="control"
               formControlName="description"
               placeholder="e.g. Grocery shopping"
+              (keydown.enter)="onEnter($event)"
             />
           </div>
 
@@ -200,8 +216,26 @@ export interface TxnDialogData {
       </div>
 
       <footer class="dialog-foot">
-        <button type="button" class="btn-text" mat-dialog-close>Cancel</button>
-        <button type="button" class="btn-save" [disabled]="form.invalid" (click)="save()">
+        <button type="button" class="btn-text" mat-dialog-close>
+          {{ addedCount() ? 'Done' : 'Cancel' }}
+        </button>
+        @if (canAddAnother) {
+          <button
+            type="button"
+            class="btn-another"
+            [disabled]="form.invalid || saving()"
+            (click)="saveAndAddAnother()"
+            title="Save and keep the dialog open (Enter)"
+          >
+            Save &amp; add another
+          </button>
+        }
+        <button
+          type="button"
+          class="btn-save"
+          [disabled]="form.invalid || saving()"
+          (click)="save()"
+        >
           Save
         </button>
       </footer>
@@ -474,6 +508,22 @@ export interface TxnDialogData {
         transition: background 140ms ease;
       }
       .btn-text:hover { background: var(--hover-bg); }
+      .btn-another {
+        border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+        cursor: pointer;
+        color: var(--accent-ink);
+        font: inherit;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 10px 16px;
+        border-radius: 11px;
+        transition: background 140ms ease;
+      }
+      .btn-another:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--accent) 18%, transparent);
+      }
+      .btn-another:disabled { opacity: 0.5; cursor: not-allowed; }
       .btn-save {
         border: none;
         cursor: pointer;
@@ -526,6 +576,7 @@ export interface TxnDialogData {
         /* Save gets the wider half and sits on the right, where the
            thumb naturally rests. */
         .btn-text { flex: 0 0 auto; min-height: 48px; }
+        .btn-another { flex: 1; min-height: 48px; padding: 10px 8px; }
         .btn-save { flex: 1; min-height: 48px; }
 
         .control,
@@ -545,37 +596,39 @@ export interface TxnDialogData {
 export class TransactionDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly ref = inject(MatDialogRef<TransactionDialogComponent>);
+  private readonly snack = inject(MatSnackBar);
   readonly data = inject<TxnDialogData>(MAT_DIALOG_DATA);
 
-  readonly direction = signal<Direction>(
-    this.data.transaction?.direction ?? 'expense',
-  );
+  /** The transaction being edited, or the prefills for a new one. */
+  private readonly init: Partial<Transaction> =
+    this.data.transaction ?? this.data.defaults ?? {};
+
+  readonly canAddAnother = !this.data.transaction && !!this.data.create;
+  readonly saving = signal(false);
+  readonly addedCount = signal(0);
+  private readonly amountInput = viewChild<ElementRef<HTMLInputElement>>('amountInput');
+
+  readonly direction = signal<Direction>(this.init.direction ?? 'expense');
   readonly isTransfer = computed(() => this.direction() === 'transfer');
-  readonly planned = signal(this.data.transaction?.planned ?? false);
+  readonly planned = signal(this.init.planned ?? false);
 
   /** Picker view of `txn_date`; the control itself stays a `yyyy-MM-dd` string. */
   readonly dateValue = signal<Date | null>(
-    isoToDate(this.data.transaction?.txn_date?.slice(0, 10) ?? todayStr()),
+    isoToDate(this.init.txn_date?.slice(0, 10) ?? todayStr()),
   );
 
   readonly form = this.fb.nonNullable.group({
-    direction: [this.data.transaction?.direction ?? ('expense' as Direction)],
-    txn_date: [
-      this.data.transaction?.txn_date?.slice(0, 10) ?? todayStr(),
-      Validators.required,
-    ],
+    direction: [this.init.direction ?? ('expense' as Direction)],
+    txn_date: [this.init.txn_date?.slice(0, 10) ?? todayStr(), Validators.required],
     description: [this.data.transaction?.description ?? '', Validators.required],
     amount: [this.data.transaction?.amount ?? 0, [Validators.required, Validators.min(0)]],
-    category_id: [this.data.transaction?.category_id ?? (null as string | null)],
-    payment_type_id: [this.data.transaction?.payment_type_id ?? (null as string | null)],
+    category_id: [this.init.category_id ?? (null as string | null)],
+    payment_type_id: [this.init.payment_type_id ?? (null as string | null)],
     account_id: [
-      this.data.transaction?.account_id ??
-        (this.data.accounts[0]?.id ?? null as string | null),
+      this.init.account_id ?? (this.data.accounts[0]?.id ?? null as string | null),
     ],
-    transfer_account_id: [
-      this.data.transaction?.transfer_account_id ?? (null as string | null),
-    ],
-    planned: [this.data.transaction?.planned ?? false],
+    transfer_account_id: [this.init.transfer_account_id ?? (null as string | null)],
+    planned: [this.init.planned ?? false],
   });
 
   constructor() {
@@ -600,11 +653,47 @@ export class TransactionDialogComponent {
     this.form.controls.planned.setValue(next);
   }
 
+  /** Enter in amount/description: in add mode keep going, otherwise save. */
+  onEnter(event: Event) {
+    event.preventDefault();
+    if (this.canAddAnother) this.saveAndAddAnother();
+    else this.save();
+  }
+
   save() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.saving()) return;
+    this.ref.close(this.payload());
+  }
+
+  /**
+   * Saves through the parent and keeps the dialog open for the next entry.
+   * Only amount and description clear — date, direction, account, category
+   * and payment type carry over, since batch entry usually shares them.
+   */
+  saveAndAddAnother() {
+    if (this.form.invalid || this.saving() || !this.data.create) return;
+    this.saving.set(true);
+    this.data.create(this.payload()).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.addedCount.update((n) => n + 1);
+        this.form.controls.description.reset('');
+        this.form.controls.amount.reset(0);
+        const amount = this.amountInput()?.nativeElement;
+        amount?.focus();
+        amount?.select();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.snack.open(err?.error?.message ?? 'Save failed', 'OK', { duration: 4000 });
+      },
+    });
+  }
+
+  private payload(): Partial<Transaction> {
     const v = this.form.getRawValue();
     const transfer = v.direction === 'transfer';
-    this.ref.close({
+    return {
       direction: v.direction,
       txn_date: v.txn_date,
       description: v.description,
@@ -614,7 +703,7 @@ export class TransactionDialogComponent {
       account_id: v.account_id || undefined,
       transfer_account_id: transfer ? v.transfer_account_id || undefined : undefined,
       planned: transfer ? false : v.planned,
-    });
+    };
   }
 }
 

@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, tap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -398,6 +398,8 @@ export class TransactionsComponent {
   private categories: Category[] = [];
   private paymentTypes: PaymentType[] = [];
   private accounts: Account[] = [];
+  /** Last added transaction's date/account/etc., to prefill the next Add. */
+  private lastAdded?: Partial<Transaction>;
 
   search = '';
   planned: boolean | undefined;
@@ -455,6 +457,14 @@ export class TransactionsComponent {
       paymentTypes: this.paymentTypes,
       accounts: this.accounts,
       transaction,
+      defaults: this.lastAdded,
+      create: (body) =>
+        this.api.createTransaction(body).pipe(
+          tap(() => {
+            this.rememberDefaults(body);
+            this.load();
+          }),
+        ),
     };
     this.dialog
       .open(TransactionDialogComponent, {
@@ -471,12 +481,19 @@ export class TransactionsComponent {
           : this.api.createTransaction(result);
         req.subscribe({
           next: () => {
+            if (!transaction) this.rememberDefaults(result);
             this.snack.open('Saved', 'OK', { duration: 2000 });
             this.load();
           },
           error: (err) => this.snack.open(err?.error?.message ?? 'Save failed', 'OK', { duration: 4000 }),
         });
       });
+  }
+
+  /** Everything but description/amount carries into the next Add. */
+  private rememberDefaults(body: Partial<Transaction>) {
+    const { description, amount, ...rest } = body;
+    this.lastAdded = rest;
   }
 
   remove(t: Transaction) {
