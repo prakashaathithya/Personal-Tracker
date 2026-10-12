@@ -22,6 +22,7 @@
     "@angular/router": "^22.0.0",
     "@supabase/supabase-js": "^2.108.1",
     "chart.js": "^4.5.1",
+    "marked": "^18.1.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5"

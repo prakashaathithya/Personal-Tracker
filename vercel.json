@@ -5,7 +5,7 @@
   "outputDirectory": "web/dist/web/browser",
   "functions": {
     "api/index.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "crons": [{ "path": "/api/credit-cards/cron", "schedule": "30 19 * * *" }],

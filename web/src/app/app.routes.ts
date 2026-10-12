@@ -92,6 +92,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'assistant',
+        loadComponent: () =>
+          import('./features/assistant/assistant.component').then(
+            (m) => m.AssistantComponent,
+          ),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(

@@ -100,6 +100,7 @@ Required environment variables (set in the Vercel dashboard):
 | `SUPABASE_SERVICE_ROLE_KEY` | api | Nightly job only — reads the list of user ids that own a card |
 | `SUPABASE_JWT_SECRET` | api | Nightly job only — mints a short-lived token per user so the run stays under RLS |
 | `CRON_SECRET` | api | Authenticates Vercel's scheduler; without it `/api/credit-cards/cron` returns 404 |
+| `ANTHROPIC_API_KEY` | api | Assistant only. Without it `/api/chat` returns 503 and the rest of the app works as before |
 
 ## Scheduled work
 
@@ -116,3 +117,17 @@ Recurring transactions are separate: they are materialized by `run_due_recurring
 inside Postgres, on a pg_cron schedule (see the migrations).
 
 Frontend (Angular) env values live in `web/src/environments/`.
+
+## Assistant
+
+The Assistant page answers questions about the signed-in user's finances with
+Claude (`server/src/chat/`). It is retrieval over structured data rather than a
+vector index: the model calls read-only tools (totals, breakdowns, transaction
+search, balances, card bills, loans, goals, budget), and each tool queries
+Supabase through the caller's RLS-scoped client and reuses the same aggregation
+code as the dashboard. The model can never see another user's rows, and it
+cannot write anything.
+
+Replies stream to the browser as newline-delimited JSON from `POST /api/chat`.
+That route is limited to 15 questions per minute per IP because each one costs
+API tokens. Set `ANTHROPIC_API_KEY` in Vercel to turn it on.

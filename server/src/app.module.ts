@@ -23,6 +23,8 @@ import {
 } from './credit-cards/credit-cards.controller';
 import { CreditCardsService } from './credit-cards/credit-cards.service';
 import { NotificationsController } from './notifications/notifications.controller';
+import { ChatController } from './chat/chat.controller';
+import { ChatService } from './chat/chat.service';
 
 @Module({
   imports: [
@@ -52,10 +54,12 @@ import { NotificationsController } from './notifications/notifications.controlle
     CreditCardsCronController,
     CreditCardsController,
     NotificationsController,
+    ChatController,
   ],
   providers: [
     AppService,
     CreditCardsService,
+    ChatService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
