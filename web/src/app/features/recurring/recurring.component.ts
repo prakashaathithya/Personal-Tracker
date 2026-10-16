@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { dateToIso, isoToDate } from '../../core/date';
 import {
   Account,
@@ -200,6 +201,7 @@ import {
 })
 export class RecurringComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly snack = inject(MatSnackBar);
 
   readonly items = signal<RecurringTransaction[]>([]);
@@ -233,8 +235,8 @@ export class RecurringComponent {
   constructor() {
     forkJoin({
       items: this.api.listRecurring(),
-      accounts: this.api.listAccounts(),
-      categories: this.api.listCategories(),
+      accounts: this.lookups.accounts(),
+      categories: this.lookups.categories(),
     }).subscribe((r) => {
       this.items.set(r.items);
       this.accounts.set(r.accounts);

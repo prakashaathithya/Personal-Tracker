@@ -46,8 +46,11 @@ export async function runCardCatchUp(
   db: SupabaseClient,
   userId: string,
 ): Promise<{ statements: number; notifications: number }> {
+  // RLS already limits this to the caller, but the filter is stated anyway so
+  // the run stays correct if it is ever driven by a client that isn't scoped
+  // to one user.
   const cards = await handle<CreditCardRow[]>(
-    db.from('credit_cards').select(CARD_EMBED),
+    db.from('credit_cards').select(CARD_EMBED).eq('user_id', userId),
   );
 
   const pending: PendingNotification[] = [];
@@ -308,6 +311,10 @@ async function collectDueAlerts(
     db
       .from('card_statements')
       .select('*')
+      .in(
+        'card_account_id',
+        cards.map((c) => c.account_id),
+      )
       .in('status', ['unpaid', 'partially_paid'])
       .order('due_date'),
   );

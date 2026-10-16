@@ -983,6 +983,7 @@ export class ShellComponent {
 
   /** Behind the "More" sheet on mobile; rest of the sidebar on desktop. */
   readonly moreNav: NavItem[] = [
+    { path: 'assistant', label: 'Assistant', icon: 'auto_awesome' },
     { path: 'credit-cards', label: 'Credit Cards', icon: 'credit_card' },
     { path: 'goals', label: 'Goals', icon: 'flag' },
     { path: 'loans', label: 'Loans / EMI', icon: 'account_balance' },

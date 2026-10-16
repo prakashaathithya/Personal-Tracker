@@ -218,6 +218,14 @@ export interface CardStatement {
   status: StatementStatus;
 }
 
+/** Result of a statement catch-up run (`POST /credit-cards/run`). */
+export interface CardCatchUpResult {
+  statements: number;
+  notifications: number;
+  /** True when another run held the lease, so this call did nothing. */
+  skipped: boolean;
+}
+
 export interface CardStatementDetail extends CardStatement {
   transactions: Transaction[];
   installments: (CardEmiInstallment & {

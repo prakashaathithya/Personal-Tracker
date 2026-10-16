@@ -1,4 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import {
   ArrayMaxSize,
   IsArray,
@@ -17,6 +18,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser, Db } from '../auth/decorators';
 import { handle } from '../common/handle';
 import { CategorizationRule, matchCategory } from '../common/rule-match';
+import { distinct, keyOf } from './dedupe';
 
 export class ImportRowDto {
   @IsDateString() txn_date!: string;
@@ -45,25 +47,9 @@ interface ExistingTxn {
   direction: string;
 }
 
-/**
- * Natural key used to recognise the "same" transaction on re-import:
- * date + amount + normalized description + direction. Imported rows are
- * always expenses.
- */
-function keyOf(r: {
-  txn_date: string;
-  amount: number;
-  description: string;
-  direction?: string;
-}): string {
-  return [
-    r.txn_date,
-    Number(r.amount).toFixed(2),
-    r.description.trim().toLowerCase().replace(/\s+/g, ' '),
-    r.direction ?? 'expense',
-  ].join('|');
-}
-
+// Each call can carry 5000 rows and fans out into several round trips, so
+// these two get a far tighter budget than the global one.
+@Throttle({ default: { limit: 10, ttl: 60_000 } })
 @UseGuards(AuthGuard)
 @Controller('import')
 export class ImportController {
@@ -97,10 +83,10 @@ export class ImportController {
         )
       )?.map((p) => p.name.toLowerCase()) ?? [],
     );
-    const newCategories = this.distinct(dto.rows.map((r) => r.category)).filter(
+    const newCategories = distinct(dto.rows.map((r) => r.category)).filter(
       (n) => !existingCats.has(n.toLowerCase()),
     );
-    const newPaymentTypes = this.distinct(
+    const newPaymentTypes = distinct(
       dto.rows.map((r) => r.payment_type),
     ).filter((n) => !existingPmts.has(n.toLowerCase()));
 
@@ -141,14 +127,14 @@ export class ImportController {
       db,
       'categories',
       user.id,
-      this.distinct(rows.map((r) => r.category)),
+      distinct(rows.map((r) => r.category)),
       (name) => ({ user_id: user.id, name, need_class: 'Others' }),
     );
     const paymentMap = await this.resolveLookup(
       db,
       'payment_types',
       user.id,
-      this.distinct(rows.map((r) => r.payment_type)),
+      distinct(rows.map((r) => r.payment_type)),
       (name) => ({ user_id: user.id, name }),
     );
 
@@ -210,12 +196,6 @@ export class ImportController {
         .lte('txn_date', dates[dates.length - 1]),
     );
     return new Set((existing ?? []).map(keyOf));
-  }
-
-  private distinct(values: (string | undefined)[]): string[] {
-    return [
-      ...new Set(values.filter((v): v is string => !!v && v.trim().length > 0)),
-    ];
   }
 
   /**

@@ -10,6 +10,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import * as XLSX from 'xlsx';
 import { ApiService } from '../../core/api.service';
+import { LookupsService } from '../../core/lookups.service';
 import { ImportRow, NeedClass } from '../../core/models';
 
 const MONTHS: Record<string, number> = {
@@ -812,6 +813,7 @@ interface PreviewRow extends ImportRow {
 })
 export class ImportComponent {
   private readonly api = inject(ApiService);
+  private readonly lookups = inject(LookupsService);
   private readonly snack = inject(MatSnackBar);
 
   readonly expectedColumns = EXPECTED_COLUMNS;
@@ -834,8 +836,8 @@ export class ImportComponent {
 
   constructor() {
     forkJoin({
-      categories: this.api.listCategories(),
-      paymentTypes: this.api.listPaymentTypes(),
+      categories: this.lookups.categories(),
+      paymentTypes: this.lookups.paymentTypes(),
     }).subscribe((r) => {
       for (const c of r.categories) {
         this.categoryNames.add(c.name.toLowerCase());
@@ -1087,6 +1089,9 @@ export class ImportComponent {
     this.api.importTransactions(payload).subscribe({
       next: (res) => {
         this.importing.set(false);
+        // An import creates any category or payment type the sheet mentions
+        // and this app doesn't have yet, so both cached lists are stale.
+        this.lookups.invalidate('categories', 'paymentTypes');
         const msg = res.skipped
           ? `Imported ${res.inserted} · skipped ${res.skipped} duplicate${res.skipped === 1 ? '' : 's'}`
           : `Imported ${res.inserted} transactions`;
