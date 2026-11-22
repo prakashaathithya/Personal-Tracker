@@ -37,7 +37,13 @@ export class AuthService {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: fullName ? { full_name: fullName } : undefined },
+      options: {
+        data: fullName ? { full_name: fullName } : undefined,
+        // Without this Supabase falls back to the project's Site URL, which
+        // still defaults to http://localhost:3000. Send the user back to
+        // whichever origin they signed up from (prod, preview or local dev).
+        emailRedirectTo: window.location.origin,
+      },
     });
     if (error) throw error;
     return data;
